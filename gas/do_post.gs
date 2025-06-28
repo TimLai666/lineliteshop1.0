@@ -7,3 +7,11 @@ function doPost(e) {
       return addOrder(data);
   }
 }
+
+// {
+//   action: 'ADD_ORDER',
+//   order: {
+//     product: []
+//     customer_id: '',
+//   },
+// }
