@@ -54,3 +54,22 @@ function getProducts() {
     return ContentService.createTextOutput(JSON.stringify(products))
         .setMimeType(ContentService.MimeType.JSON);
 }
+
+function getCustomers() {
+    const sheet = customerSheet;
+    if (!sheet) {
+        return ContentService.createTextOutput('Sheet not found');
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const customers = data.slice(1).map(row => ({
+        id: row[0],
+        name: row[1],
+        birthday: row[2],
+        phone: row[3],
+        note: row[4]
+    }));
+
+    return ContentService.createTextOutput(JSON.stringify(customers))
+        .setMimeType(ContentService.MimeType.JSON);
+}

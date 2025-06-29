@@ -55,3 +55,20 @@ function testGetProducts() {
         Logger.log('測試發生錯誤:', error);
     }
 }
+
+function testGetCustomers() {
+    try {
+        const result = getCustomers();
+        const responseText = result.getContent();
+        const response = JSON.parse(responseText);
+
+        if (Array.isArray(response) && response.length > 0) {
+            console.log('測試成功: 顧客數據已獲取');
+            console.log(response);
+        } else {
+            console.log('測試失敗: 顧客數據格式不正確或為空');
+        }
+    } catch (error) {
+        Logger.log('測試發生錯誤:', error);
+    }
+}
