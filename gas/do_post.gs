@@ -91,6 +91,7 @@ function updateOrder(data) {
   const order = data.order;
   const sheet = orderSheet;
   const orderId = order.id;
+  const rowToUpdate = orderId + 1;
   if (!order.id || !checkOrderExists(orderId)) return ContentService.createTextOutput(JSON.stringify({
     status: 'error',
     message: '訂單不存在或ID無效'
@@ -98,17 +99,17 @@ function updateOrder(data) {
 
   if (order.status) {
     // 更新訂單狀態
-    sheet.getRange(orderId + 1, 5).setValue(order.status); // 假設狀態在第5列
+    sheet.getRange(rowToUpdate, 5).setValue(order.status); // 假設狀態在第5列
   }
 
   if (order.total_amount) {
     // 更新訂單總金額
-    sheet.getRange(orderId + 1, 7).setValue(order.total_amount); // 假設總金額在第7列
+    sheet.getRange(rowToUpdate, 7).setValue(order.total_amount); // 假設總金額在第7列
   }
 
   if (order.internal_note) {
     // 更新內部備註
-    sheet.getRange(orderId + 1, 9).setValue(order.internal_note); // 假設內部備註在第8列
+    sheet.getRange(rowToUpdate, 9).setValue(order.internal_note); // 假設內部備註在第8列
   }
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
