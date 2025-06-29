@@ -3,6 +3,7 @@ function testAddOrder() {
         order: {
             product: [{ product: '章魚燒', quantity: 2 }, { product: '西瓜汁', quantity: 2 }], // 使用產品名稱
             customer_id: 'C001',
+            note: '請不要太辣，謝謝！'
         },
     };
 

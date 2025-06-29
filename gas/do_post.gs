@@ -11,8 +11,9 @@ function doPost(e) {
 // {
 //   action: 'ADD_ORDER',
 //     order: {
-//     product: []
+//     product: [{ product: '產品名', quantity: 數量 }]
 //     customer_id: '',
+//     note: '顧客備註'
 //   },
 // }
 
@@ -54,6 +55,11 @@ function addOrder(data) {
 
   // 設定顧客id
   sheet.getRange(newRow, 3).setValue(order.customer_id);
+
+  // 設定顧客備註
+  if (order.note) {
+    sheet.getRange(newRow, 8).setValue(order.note);
+  }
 
   // 設置訂單狀態為 '待處理'
   sheet.getRange(newRow, 5).setValue('待處理');
