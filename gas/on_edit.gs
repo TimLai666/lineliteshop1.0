@@ -11,6 +11,7 @@ function onEdit(e) {
   // todo: 根據工作表名稱和欄位值進行處理
   switch (sheetName) {
     case '商品類別':
+      // **新增商品類別時，確保名稱唯一，若名稱已存在則恢復原值並顯示警告訊息**
       if (col === 1 && row > 1) {
         // 處理商品類別的名稱編輯
         if (!value) return; // 如果值為空，則不處理
