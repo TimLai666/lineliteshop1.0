@@ -1,16 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"lineliteshop1.0/internal/config"
+	"lineliteshop1.0/internal/handlers"
+	"lineliteshop1.0/internal/routes"
 
+	"github.com/gin-gonic/gin"
 	"github.com/line/line-bot-sdk-go/v8/linebot/messaging_api"
 )
 
 func main() {
+	// 初始化 LINE Bot Messaging API 客戶端
 	client := &http.Client{}
 	bot, err := messaging_api.NewMessagingApiAPI(
 		config.LINE_CHANNEL_TOKEN,
@@ -20,45 +23,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// todo: rich menu管理
-	_ = bot
+	// 初始化處理器 (內部會自動初始化服務層)
+	handler := handlers.NewHandler(bot)
 
-	// 設定 webhook 處理的路由
-	// http.HandleFunc("/callback", func(w http.ResponseWriter, req *http.Request) {
-	// 	// 解析 webhook 事件
-	// 	cb, err := webhook.ParseRequest(config.LINE_CHANNEL_SECRET, req)
-	// 	if err != nil {
-	// 		log.Printf("解析 webhook 失敗: %v", err)
-	// 		http.Error(w, "Bad Request", http.StatusBadRequest)
-	// 		return
-	// 	}
+	// 初始化 Gin 路由器 (使用預設中間件)
+	r := gin.Default()
 
-	// 	// 處理每一個事件
-	// 	for _, event := range cb.Events {
-	// 		switch e := event.(type) {
-	// 		case webhook.MessageEvent:
-	// 			replyMessage, err := service.AskInfo(e.Message.(webhook.TextMessageContent).Text)
-	// 			if err != nil {
-	// 				log.Printf("LLM 請求失敗: %v", err)
-	// 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-	// 				return
-	// 			}
+	// 設定路由
+	routes.SetupRoutes(r, handler)
 
-	// 			bot.ReplyMessage(&messaging_api.ReplyMessageRequest{
-	// 				ReplyToken: e.ReplyToken,
-	// 				Messages: []messaging_api.MessageInterface{
-	// 					messaging_api.TextMessage{
-	// 						Text: replyMessage,
-	// 					},
-	// 				},
-	// 			})
-	// 		case webhook.StickerMessageContent:
-	// 			// Do Something...
-	// 		}
-	// 	}
-	// })
-
-	// 啟動 HTTP 伺服器
-	fmt.Println("伺服器啟動於 :8081 端口")
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	// 啟動 Gin 伺服器
+	log.Println("伺服器啟動於 :8081 端口")
+	log.Fatal(r.Run(":8081"))
 }
