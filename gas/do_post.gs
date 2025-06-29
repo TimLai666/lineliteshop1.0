@@ -81,9 +81,7 @@ function addOrder(data) {
 //   action: 'UPDATE_ORDER',
 //     order: {
 //     id: '訂單ID', // 假設有一個訂單ID來識別訂單
-//     products: [{ product: '產品名', quantity: 數量 }]
-//     customer_id: '',
-//     customer_note: '顧客備註',
+//     total_amount: 100, // 可選，更新總金額
 //     status: '訂單狀態', // 例如 '待處理', '進行中','已完成', '取消'
 //     internal_note: '內部備註' // 可選
 //   },
@@ -101,6 +99,11 @@ function updateOrder(data) {
   if (order.status) {
     // 更新訂單狀態
     sheet.getRange(orderId + 1, 5).setValue(order.status); // 假設狀態在第5列
+  }
+
+  if (order.total_amount) {
+    // 更新訂單總金額
+    sheet.getRange(orderId + 1, 7).setValue(order.total_amount); // 假設總金額在第7列
   }
 
   if (order.internal_note) {

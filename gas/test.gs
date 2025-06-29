@@ -115,6 +115,7 @@ function testUpdateOrder() {
         order: {
             id: 1, // 假設要更新的訂單ID
             status: '已完成', // 更新訂單狀態
+            total_amount: 500, // 更新訂單總金額
             internal_note: '更新備註',
         },
     };
