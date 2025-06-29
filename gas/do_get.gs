@@ -73,3 +73,30 @@ function getCustomers() {
     return ContentService.createTextOutput(JSON.stringify(customers))
         .setMimeType(ContentService.MimeType.JSON);
 }
+
+function getOrders() {
+    const sheet = orderSheet;
+    if (!sheet) {
+        return ContentService.createTextOutput('Sheet not found');
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const orders = data.slice(1).map(row => ({
+        id: row[0],
+        products: row[1] ? row[1].split(', ').map(item => {
+            const [product, quantity] = item.split('*');
+            return { product, quantity: parseInt(quantity, 10) || 0 };
+        }) : [], // 如果產品資料為空，返回空陣列
+        customer_id: row[2],
+        customer_name: row[3],
+        status: row[4],
+        time: row[5],
+        totalAmount: row[6],
+        customer_note: row[7],  // 顧客輸入的備註
+        internal_note: row[8],  // 店家筆記
+
+    }));
+
+    return ContentService.createTextOutput(JSON.stringify(orders))
+        .setMimeType(ContentService.MimeType.JSON);
+}

@@ -1,9 +1,9 @@
 function testAddOrder() {
     const orderData = {
         order: {
-            product: [{ product: '章魚燒', quantity: 2 }, { product: '西瓜汁', quantity: 2 }], // 使用產品名稱
+            products: [{ product: '章魚燒', quantity: 2 }, { product: '西瓜汁', quantity: 2 }], // 使用產品名稱
             customer_id: 'C001',
-            note: '請不要太辣，謝謝！'
+            customer_note: '請不要太辣，謝謝！'
         },
     };
 
@@ -67,6 +67,42 @@ function testGetCustomers() {
             console.log(response);
         } else {
             console.log('測試失敗: 顧客數據格式不正確或為空');
+        }
+    } catch (error) {
+        Logger.log('測試發生錯誤:', error);
+    }
+}
+
+function testGetOrders() {
+    try {
+        const result = getOrders();
+        const responseText = result.getContent();
+        const orders = JSON.parse(responseText);
+
+        if (Array.isArray(orders) && orders.length > 0) {
+            // 獲取產品資訊用於遞迴展開
+            const productsResult = getProducts();
+            const productsResponseText = productsResult.getContent();
+            const products = JSON.parse(productsResponseText);
+
+            // 遞迴展開每個訂單中的產品資訊
+            const expandedOrders = orders.map(order => {
+                const expandedProducts = order.products.map(orderProduct => {
+                    return {
+                        ...orderProduct,
+                    };
+                });
+
+                return {
+                    ...order,
+                    products: expandedProducts,
+                };
+            });
+
+            console.log('測試成功: 訂單數據已獲取並遞迴展開產品資訊');
+            console.log('展開後的訂單資料:', JSON.stringify(expandedOrders, null, 2));
+        } else {
+            console.log('測試失敗: 訂單數據格式不正確或為空');
         }
     } catch (error) {
         Logger.log('測試發生錯誤:', error);

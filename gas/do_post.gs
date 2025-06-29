@@ -11,9 +11,9 @@ function doPost(e) {
 // {
 //   action: 'ADD_ORDER',
 //     order: {
-//     product: [{ product: '產品名', quantity: 數量 }]
+//     products: [{ product: '產品名', quantity: 數量 }]
 //     customer_id: '',
-//     note: '顧客備註'
+//     customer_note: '顧客備註'
 //   },
 // }
 
@@ -22,7 +22,7 @@ function addOrder(data) {
   const sheet = orderSheet;
 
   // 驗證所有產品是否存在，並計算總金額
-  const validationResult = validateProductsAndCalculateTotal(order.product);
+  const validationResult = validateProductsAndCalculateTotal(order.products);
 
   if (!validationResult.isValid) {
     console.log(`錯誤：${validationResult.errorMessage}，取消添加訂單`);
@@ -55,7 +55,7 @@ function addOrder(data) {
   const newRow = lastRow + 1;
 
   // 將產品格式化為 "產品名*數量" 的形式
-  const products = order.product.map(item => `${item.product}*${item.quantity}`).join(', ');
+  const products = order.products.map(item => `${item.product}*${item.quantity}`).join(', ');
 
   // 準備批次數據 - 分別處理不同欄位（跳過D欄的顧客姓名公式）
   // 表格結構：A=序號, B=產品, C=顧客ID, D=顧客姓名(公式), E=狀態, F=時間, G=總金額, H=備註
@@ -65,10 +65,10 @@ function addOrder(data) {
 
   // 設置 E、F、G、H 欄（狀態、時間、總金額、備註），跳過D欄避免覆蓋公式
   const orderData = [
-    '待處理',           // E欄：訂單狀態
-    new Date(),         // F欄：訂單時間
-    totalAmount,        // G欄：訂單總金額
-    order.note || ''    // H欄：顧客備註
+    '待處理',                      // E欄：訂單狀態
+    new Date(),                   // F欄：訂單時間
+    totalAmount,                  // G欄：訂單總金額
+    order.customer_note           // H欄：顧客備註
   ];
   sheet.getRange(newRow, 5, 1, 4).setValues([orderData]);
 

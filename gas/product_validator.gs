@@ -8,6 +8,15 @@
  * @return {Object} 驗證結果 { isValid: boolean, totalAmount: number, errorMessage: string }
  */
 function validateProductsAndCalculateTotal(products) {
+    // 檢查產品陣列是否有效
+    if (!products || !Array.isArray(products) || products.length === 0) {
+        return {
+            isValid: false,
+            totalAmount: 0,
+            errorMessage: '產品清單不能為空'
+        };
+    }
+
     let totalAmount = 0;
 
     for (const productItem of products) {
