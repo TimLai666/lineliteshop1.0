@@ -2,6 +2,14 @@
 function doPost(e) {
   const data = JSON.parse(e.postData.contents);
 
+  // 驗證 token
+  if (!data.token || data.token !== settings.token) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: 'Invalid or missing token'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
   switch (data.action) {
     case 'ADD_CUSTOMER':
       return addCustomer(data);
@@ -11,6 +19,11 @@ function doPost(e) {
       return addOrder(data);
     case 'UPDATE_ORDER':
       return updateOrder(data);
+    default:
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: 'Invalid action'
+      })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -37,7 +50,7 @@ function addCustomer(data) {
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: `顧客ID ${customer.id} 已存在`
-    }));
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 檢查顧客姓名是否為空
@@ -46,7 +59,7 @@ function addCustomer(data) {
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: '顧客姓名不能為空'
-    }));
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 檢查生日格式是否正確
@@ -55,7 +68,7 @@ function addCustomer(data) {
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: '顧客生日格式不正確，應為 YYYY-MM-DD'
-    }));
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 檢查電話格式是否正確（假設電話格式為數字）
@@ -64,7 +77,7 @@ function addCustomer(data) {
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: '顧客電話格式不正確，應為數字'
-    }));
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 檢查email
@@ -73,7 +86,7 @@ function addCustomer(data) {
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: '顧客電子郵件格式不正確'
-    }));
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 所有檢查通過，開始添加顧客
@@ -87,7 +100,8 @@ function addCustomer(data) {
   // 設置 A、B、C、D 欄（ID、姓名、生日、電話）
   sheet.getRange(newRow, 1, 1, 5).setValues([[customer.id, customer.name, customer.birthday, customer.phone, customer.email]]);
 
-  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 
@@ -113,7 +127,7 @@ function updateCustomer(data) {
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: `顧客ID ${customer.id} 不存在`
-    }));
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
   const rowToUpdate = existingCustomer.customerRow;
@@ -125,7 +139,7 @@ function updateCustomer(data) {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
         message: '顧客姓名不能為空'
-      }));
+      })).setMimeType(ContentService.MimeType.JSON);
     }
     sheet.getRange(rowToUpdate, 2).setValue(customer.name);
   }
@@ -137,7 +151,7 @@ function updateCustomer(data) {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
         message: '顧客生日格式不正確，應為 YYYY-MM-DD'
-      }));
+      })).setMimeType(ContentService.MimeType.JSON);
     }
     sheet.getRange(rowToUpdate, 3).setValue(customer.birthday);
   }
@@ -149,7 +163,7 @@ function updateCustomer(data) {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
         message: '顧客電話格式不正確，應為數字'
-      }));
+      })).setMimeType(ContentService.MimeType.JSON);
     }
     sheet.getRange(rowToUpdate, 4).setValue(customer.phone);
   }
@@ -161,12 +175,13 @@ function updateCustomer(data) {
       return ContentService.createTextOutput(JSON.stringify({
         status: 'error',
         message: '顧客電子郵件格式不正確'
-      }));
+      })).setMimeType(ContentService.MimeType.JSON);
     }
     sheet.getRange(rowToUpdate, 5).setValue(customer.email);
   }
 
-  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 
@@ -191,7 +206,7 @@ function addOrder(data) {
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: validationResult.errorMessage
-    }));
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 驗證顧客是否存在
@@ -202,7 +217,7 @@ function addOrder(data) {
     return ContentService.createTextOutput(JSON.stringify({
       status: 'error',
       message: customerValidation.errorMessage
-    }));
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 
   const totalAmount = validationResult.totalAmount;
@@ -234,7 +249,8 @@ function addOrder(data) {
   ];
   sheet.getRange(newRow, 5, 1, 4).setValues([orderData]);
 
-  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 
@@ -256,7 +272,7 @@ function updateOrder(data) {
   if (!order.id || !checkOrderExists(orderId)) return ContentService.createTextOutput(JSON.stringify({
     status: 'error',
     message: '訂單不存在或ID無效'
-  }));
+  })).setMimeType(ContentService.MimeType.JSON);
 
   if (order.status) {
     // 更新訂單狀態
@@ -273,5 +289,6 @@ function updateOrder(data) {
     sheet.getRange(rowToUpdate, 9).setValue(order.internal_note); // 假設內部備註在第8列
   }
 
-  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
+    .setMimeType(ContentService.MimeType.JSON);
 }

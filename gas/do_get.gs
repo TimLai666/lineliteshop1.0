@@ -1,7 +1,18 @@
 function doGet(e) {
+    // 驗證 token
+    if (!e.parameter.token || e.parameter.token !== settings.token) {
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'Invalid or missing token'
+        })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     // 確保有 sheet 參數
     if (!e.parameter.sheet) {
-        return ContentService.createTextOutput('Missing sheet parameter');
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'Missing sheet parameter'
+        })).setMimeType(ContentService.MimeType.JSON);
     }
 
     // 根據 sheet 執行不同的操作
@@ -15,14 +26,20 @@ function doGet(e) {
         case 'ORDERS':
             return getOrders();
         default:
-            return ContentService.createTextOutput('Invalid sheet parameter');
+            return ContentService.createTextOutput(JSON.stringify({
+                status: 'error',
+                message: 'Invalid sheet parameter'
+            })).setMimeType(ContentService.MimeType.JSON);
     }
 }
 
 function getCategories() {
     const sheet = categorySheet;
     if (!sheet) {
-        return ContentService.createTextOutput('Sheet not found');
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'Sheet not found'
+        })).setMimeType(ContentService.MimeType.JSON);
     }
 
     const data = sheet.getDataRange().getValues();
@@ -39,7 +56,10 @@ function getCategories() {
 function getProducts() {
     const sheet = productSheet;
     if (!sheet) {
-        return ContentService.createTextOutput('Sheet not found');
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'Sheet not found'
+        })).setMimeType(ContentService.MimeType.JSON);
     }
 
     const data = sheet.getDataRange().getValues();
@@ -58,7 +78,10 @@ function getProducts() {
 function getCustomers() {
     const sheet = customerSheet;
     if (!sheet) {
-        return ContentService.createTextOutput('Sheet not found');
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'Sheet not found'
+        })).setMimeType(ContentService.MimeType.JSON);
     }
 
     const data = sheet.getDataRange().getValues();
@@ -77,7 +100,10 @@ function getCustomers() {
 function getOrders() {
     const sheet = orderSheet;
     if (!sheet) {
-        return ContentService.createTextOutput('Sheet not found');
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'Sheet not found'
+        })).setMimeType(ContentService.MimeType.JSON);
     }
 
     const data = sheet.getDataRange().getValues();
