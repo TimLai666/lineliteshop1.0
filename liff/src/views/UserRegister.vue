@@ -54,7 +54,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { liff } from '@line/liff'
-import { LiffMockPlugin } from '@line/liff-mock' // 用於模擬 LIFF 環境，開發時可用
+// import { LiffMockPlugin } from '@line/liff-mock' // 暫時不使用，改用自定義 Mock
 import UserProfileCard from '../components/UserProfileCard.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import MessageAlert from '../components/MessageAlert.vue'
@@ -75,31 +75,50 @@ const registerData = ref({
 // 初始化 LIFF
 onMounted(async () => {
     try {
-        // 在開發環境中使用模擬插件，提供模擬的用戶資料
+        // 在開發環境中使用自定義 Mock
         if (import.meta.env.DEV) {
-            console.log('🚀 開發模式：啟用 LIFF Mock 功能')
-            liff.use(new LiffMockPlugin({
-                profile: {
-                    userId: 'U1234567890abcdef',
-                    displayName: '測試用戶',
-                    pictureUrl: 'https://profile.line-scdn.net/0hWTtohNNVMGBREDyBFMFBbHF1MQg1CDkBfAQqBSsVFAozVSgELgMpGHgBEVoyVigILgQtHSsBFFk8',
-                    statusMessage: '這是一個測試用戶帳號 - Mock 模式'
-                },
-                isLoggedIn: true,
-                context: {
-                    type: 'utou',
-                    userId: 'U1234567890abcdef',
-                    utouId: 'U1234567890'
-                }
-            }))
-        } else {
-            console.log('🌍 生產模式：使用真實 LIFF 環境')
+            console.log('🚀 開發模式：啟用自定義 LIFF Mock 功能')
+
+            // 模擬 LIFF 初始化成功
+            console.log('✅ LIFF Mock 初始化成功!')
+            console.log('🔧 Mock 模式: 啟用')
+            isLiffReady.value = true
+
+            // 模擬獲取上下文
+            const mockContext = {
+                type: 'utou',
+                userId: 'U1234567890abcdef',
+                utouId: 'U1234567890'
+            }
+            console.log('LIFF Context (Mock):', mockContext)
+
+            // 模擬登入狀態為 true
+            const mockIsLoggedIn = true
+            console.log('登入狀態 (Mock):', mockIsLoggedIn)
+
+            // 直接設定模擬的用戶資料
+            const mockProfile = {
+                userId: 'U1234567890abcdef',
+                displayName: '測試用戶 🎭',
+                pictureUrl: 'https://profile.line-scdn.net/0hWTtohNNVMGBREDyBFMFBbHF1MQg1CDkBfAQqBSsVFAozVSgELgMpGHgBEVoyVigILgQtHSsBFFk8',
+                statusMessage: '這是 Mock 測試用戶帳號'
+            }
+
+            console.log('用戶已登入 (Mock)，正在獲取用戶資料...')
+            console.log('用戶資料 (Mock):', mockProfile)
+            console.log('用戶 UID (Mock):', mockProfile.userId)
+
+            // 設定 profile 資料
+            profile.value = mockProfile
+
+            return // 在 Mock 模式下直接返回，不執行真實的 LIFF 初始化
         }
 
+        // 生產環境：使用真實 LIFF
+        console.log('🌍 生產模式：使用真實 LIFF 環境')
+
         await liff.init({
-            liffId: '2007661588-kJDbPzDw', // 替換為你的 LIFF ID
-            // 在開發環境中啟用 mock
-            ...(import.meta.env.DEV && { mock: true })
+            liffId: '2007661588-kJDbPzDw'
         })
 
         console.log('✅ LIFF 初始化成功!')
