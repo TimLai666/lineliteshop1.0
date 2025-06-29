@@ -76,17 +76,18 @@ function onEdit(e) {
           // **若庫存小於等於0，不允許「有現貨」**
 
           const price = sheet.getRange(row, 3).getValue();
-          const inventory = sheet.getRange(row, 4).getValue();
+          const stock = sheet.getRange(row, 4).getValue();
           const status = value;
           if (status !== '下架' && price <= 0) {
             // 恢復原值
-            e.range.setValue(e.oldValue || '');
+            const recoveryValue = e.oldValue && e.oldValue === '下架' ? e.oldValue : '';
+            e.range.setValue(recoveryValue);
             // 顯示警告訊息
             SpreadsheetApp.getUi().alert('錯誤', '未設定價格或價格小於等於0時，商品狀態只能為「下架」！', SpreadsheetApp.getUi().ButtonSet.OK);
             return;
           }
 
-          if (status === '有現貨' && inventory <= 0) {
+          if (status === '有現貨' && stock <= 0) {
             // 恢復原值
             e.range.setValue(e.oldValue || '');
             // 顯示警告訊息
