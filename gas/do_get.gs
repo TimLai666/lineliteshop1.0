@@ -35,3 +35,22 @@ function getCategories() {
     return ContentService.createTextOutput(JSON.stringify(categories))
         .setMimeType(ContentService.MimeType.JSON);
 }
+
+function getProducts() {
+    const sheet = productSheet;
+    if (!sheet) {
+        return ContentService.createTextOutput('Sheet not found');
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const products = data.slice(1).map(row => ({
+        name: row[0],
+        category: row[1],
+        price: row[2],
+        stock: row[3],
+        status: row[4]
+    }));
+
+    return ContentService.createTextOutput(JSON.stringify(products))
+        .setMimeType(ContentService.MimeType.JSON);
+}
