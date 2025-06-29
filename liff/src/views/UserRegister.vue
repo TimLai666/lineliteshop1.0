@@ -44,6 +44,9 @@
                 <MessageAlert v-if="registerResult" :message="registerResult.message" :type="registerResult.type"
                     :visible="true" />
             </div>
+
+            <!-- 調試面板 -->
+            <LiffDebugPanel />
         </div>
     </div>
 </template>
@@ -51,9 +54,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { liff } from '@line/liff'
+import { LiffMockPlugin } from '@line/liff-mock' // 用於模擬 LIFF 環境，開發時可用
 import UserProfileCard from '../components/UserProfileCard.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import MessageAlert from '../components/MessageAlert.vue'
+import LiffDebugPanel from '../components/LiffDebugPanel.vue'
 
 const isLiffReady = ref(false)
 const profile = ref(null)
@@ -70,29 +75,86 @@ const registerData = ref({
 // 初始化 LIFF
 onMounted(async () => {
     try {
+        // 在開發環境中使用模擬插件，提供模擬的用戶資料
+        if (import.meta.env.DEV) {
+            console.log('🚀 開發模式：啟用 LIFF Mock 功能')
+            liff.use(new LiffMockPlugin({
+                profile: {
+                    userId: 'U1234567890abcdef',
+                    displayName: '測試用戶',
+                    pictureUrl: 'https://profile.line-scdn.net/0hWTtohNNVMGBREDyBFMFBbHF1MQg1CDkBfAQqBSsVFAozVSgELgMpGHgBEVoyVigILgQtHSsBFFk8',
+                    statusMessage: '這是一個測試用戶帳號 - Mock 模式'
+                },
+                isLoggedIn: true,
+                context: {
+                    type: 'utou',
+                    userId: 'U1234567890abcdef',
+                    utouId: 'U1234567890'
+                }
+            }))
+        } else {
+            console.log('🌍 生產模式：使用真實 LIFF 環境')
+        }
+
         await liff.init({
-            liffId: '1657778888-xxxxxx' // 替換為你的 LIFF ID
+            liffId: '2007661588-kJDbPzDw', // 替換為你的 LIFF ID
+            // 在開發環境中啟用 mock
+            ...(import.meta.env.DEV && { mock: true })
         })
 
-        console.log('LIFF initialized successfully')
+        console.log('✅ LIFF 初始化成功!')
+        console.log('🔧 Mock 模式:', import.meta.env.DEV ? '啟用' : '停用')
         isLiffReady.value = true
 
+        // 獲取 LIFF 上下文資訊
+        const context = liff.getContext()
+        console.log('LIFF Context:', context)
+
         // 檢查用戶是否已登入
-        if (liff.isLoggedIn()) {
-            // 獲取用戶資料
-            const userProfile = await liff.getProfile()
-            profile.value = userProfile
-            console.log('User profile:', userProfile)
-            console.log('User UID:', userProfile.userId)
+        const isLoggedIn = liff.isLoggedIn()
+        console.log('登入狀態:', isLoggedIn)
+
+        if (isLoggedIn) {
+            console.log('用戶已登入，正在獲取用戶資料...')
+            try {
+                // 獲取用戶資料
+                const userProfile = await liff.getProfile()
+                profile.value = userProfile
+                console.log('用戶資料:', userProfile)
+                console.log('用戶 UID:', userProfile.userId)
+            } catch (profileError) {
+                console.error('獲取用戶資料失敗:', profileError)
+                registerResult.value = {
+                    type: 'error',
+                    message: '獲取用戶資料失敗，請確認 LIFF 設定中的 scope 權限'
+                }
+            }
         } else {
+            console.log('用戶未登入，準備導向登入頁面...')
             // 如果未登入，導向登入頁面
             liff.login()
         }
     } catch (error) {
-        console.error('LIFF initialization failed:', error)
+        console.error('LIFF 初始化失敗:', error)
+        console.error('錯誤詳情:', {
+            code: error.code,
+            message: error.message,
+            cause: error.cause
+        })
+
+        let errorMessage = 'LINE 服務初始化失敗'
+
+        if (error.code === 'INVALID_CONFIG') {
+            errorMessage = 'LIFF ID 不正確，請檢查設定'
+        } else if (error.code === 'UNAUTHORIZED') {
+            errorMessage = '未授權存取，請檢查 LIFF 應用程式設定'
+        } else if (error.code === 'FORBIDDEN') {
+            errorMessage = '權限不足，請檢查 LIFF 應用程式的 scope 設定'
+        }
+
         registerResult.value = {
             type: 'error',
-            message: 'LINE 服務初始化失敗，請重新整理頁面'
+            message: errorMessage + '，請重新整理頁面'
         }
     }
 })
@@ -170,7 +232,8 @@ const handleRegister = async () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 0;
+    margin: 0;
 }
 
 .register-card {
@@ -316,13 +379,24 @@ const handleRegister = async () => {
 }
 
 @media (max-width: 600px) {
+    .register-container {
+        padding: 0;
+        align-items: flex-start;
+    }
+
     .register-card {
-        padding: 24px;
-        margin: 10px;
+        padding: 20px;
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+        box-sizing: border-box;
+        width: 100vw;
+        max-width: none;
     }
 
     .register-card h2 {
         font-size: 20px;
+        margin-top: 20px;
     }
 }
 </style>
