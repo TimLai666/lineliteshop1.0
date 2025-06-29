@@ -73,13 +73,14 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { liff } from '@line/liff'
+import { getLiffId } from '../config'
 
 const debugInfo = ref({
     isInClient: false,
     os: '',
     version: '',
     currentUrl: '',
-    liffId: '2007661588-kJDbPzDw'
+    liffId: getLiffId()
 })
 
 const isLiffReady = ref(false)

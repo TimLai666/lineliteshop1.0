@@ -60,6 +60,7 @@ import LoadingSpinner from '../components/LoadingSpinner.vue'
 import MessageAlert from '../components/MessageAlert.vue'
 import LiffDebugPanel from '../components/LiffDebugPanel.vue'
 import { userApi, handleApiError } from '../services/index.js'
+import { isDev, getLiffId } from '../config'
 
 const isLiffReady = ref(false)
 const profile = ref(null)
@@ -77,7 +78,7 @@ const registerData = ref({
 onMounted(async () => {
     try {
         // 在開發環境中使用自定義 Mock
-        if (import.meta.env.DEV) {
+        if (isDev()) {
             console.log('🚀 開發模式：啟用自定義 LIFF Mock 功能')
 
             // 模擬 LIFF 初始化成功
@@ -119,11 +120,11 @@ onMounted(async () => {
         console.log('🌍 生產模式：使用真實 LIFF 環境')
 
         await liff.init({
-            liffId: '2007661588-kJDbPzDw'
+            liffId: getLiffId()
         })
 
         console.log('✅ LIFF 初始化成功!')
-        console.log('🔧 Mock 模式:', import.meta.env.DEV ? '啟用' : '停用')
+        console.log('🔧 Mock 模式:', isDev() ? '啟用' : '停用')
         isLiffReady.value = true
 
         // 獲取 LIFF 上下文資訊

@@ -66,14 +66,27 @@ await api.order.createOrder(orderData)
 await api.order.getUserOrders(lineUserId)
 ```
 
-## ⚙️ 環境設定
+## ⚙️ 配置設定
 
-### 環境變數 (.env)
+### 應用程式配置 (src/config/index.js)
+
+所有配置現在統一在 `src/config/index.js` 中管理：
+
+```javascript
+export const config = {
+    isDevelopment: import.meta.env.DEV,
+    api: {
+        baseUrl: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'
+    },
+    liff: {
+        id: '2007661588-kJDbPzDw'
+    }
+}
 ```
-VITE_API_BASE_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
-VITE_LIFF_ID=2007661588-kJDbPzDw
-VITE_ENABLE_MOCK=true
-```
+
+- **開發/生產模式判斷**: 自動根據 Vite 的 `import.meta.env.DEV` 判斷
+- **API 設定**: 統一管理 API 基礎 URL
+- **LIFF 設定**: 統一管理 LIFF ID
 
 ### Google Apps Script 端點格式
 所有 API 請求都會送到同一個端點，透過 `action` 參數區分：

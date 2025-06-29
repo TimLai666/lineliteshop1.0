@@ -1,5 +1,7 @@
+import { getApiBaseUrl } from '../config'
+
 // API 基礎設定
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec'
+const API_BASE_URL = getApiBaseUrl()
 
 // HTTP 請求工具函數
 const httpRequest = async (url, options = {}) => {
