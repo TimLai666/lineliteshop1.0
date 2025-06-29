@@ -1,28 +1,9 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import { liff } from '@line/liff'
-
-liff.init({
-  liffId: '1657778888-xxxxxx' // 替換為你的 LIFF ID
-}).then(() => {
-  console.log('LIFF initialized successfully')
-}).catch((error) => {
-  console.error('LIFF initialization failed:', error)
-})
+import UserRegister from './views/UserRegister.vue'
 </script>
 
 <template>
-  <h1>{{ liff.getOS() }}</h1>
-  <h2>{{ liff.getFriendship() }}</h2>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+  <UserRegister />
 </template>
 
 <style scoped>
