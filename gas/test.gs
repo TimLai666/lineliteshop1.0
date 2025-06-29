@@ -4,7 +4,8 @@ function testAddCustomer() {
             name: '王小明',
             phone: '0912345678',
             birthday: '1990-01-01', // 格式: YYYY-MM-DD
-            id: 'C002', // 假設顧客ID為 C001
+            id: 'C0020', // 假設顧客ID為 C001
+            email: 'aabbcc@gmail.com' // 假設顧客電子郵件
         },
     };
     try {
@@ -28,6 +29,7 @@ function testUpdateCustomer() {
             id: 'C001', // 假設要更新的顧客ID
             name: '李小華', // 更新顧客姓名
             phone: '0987654321', // 更新顧客電話
+            email: 'aabbcc@gmail.com' // 更新顧客電子郵件
         }
     };
     try {

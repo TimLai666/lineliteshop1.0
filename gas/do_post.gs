@@ -22,6 +22,7 @@ function doPost(e) {
 //     name: '顧客姓名',
 //     birthday: '顧客生日', // 格式: YYYY-MM-DD
 //     phone: '顧客電話',
+//     email: '顧客電子郵件'
 //   }
 // }
 
@@ -66,6 +67,15 @@ function addCustomer(data) {
     }));
   }
 
+  // 檢查email
+  if (customer.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+    console.log('錯誤：顧客電子郵件格式不正確');
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: '顧客電子郵件格式不正確'
+    }));
+  }
+
   // 所有檢查通過，開始添加顧客
   const lastRow = sheet.getLastRow();
   if (lastRow >= sheet.getMaxRows()) {
@@ -75,7 +85,7 @@ function addCustomer(data) {
   const newRow = lastRow + 1;
 
   // 設置 A、B、C、D 欄（ID、姓名、生日、電話）
-  sheet.getRange(newRow, 1, 1, 4).setValues([[customer.id, customer.name, customer.birthday, customer.phone]]);
+  sheet.getRange(newRow, 1, 1, 5).setValues([[customer.id, customer.name, customer.birthday, customer.phone, customer.email]]);
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
 }
@@ -88,6 +98,7 @@ function addCustomer(data) {
 //     name: '新顧客姓名', // 可選
 //     birthday: '新顧客生日', // 格式: YYYY-MM-DD，可選
 //     phone: '新顧客電話' // 可選
+//     email: '新顧客電子郵件' // 可選
 //   }
 // }
 
@@ -141,6 +152,18 @@ function updateCustomer(data) {
       }));
     }
     sheet.getRange(rowToUpdate, 4).setValue(customer.phone);
+  }
+
+  // 更新顧客電子郵件
+  if (customer.email) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+      console.log('錯誤：顧客電子郵件格式不正確');
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: '顧客電子郵件格式不正確'
+      }));
+    }
+    sheet.getRange(rowToUpdate, 5).setValue(customer.email);
   }
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
