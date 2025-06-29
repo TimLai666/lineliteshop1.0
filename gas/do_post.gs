@@ -32,6 +32,17 @@ function addOrder(data) {
     }));
   }
 
+  // 驗證顧客是否存在
+  const customerValidation = checkCustomerExists(order.customer_id);
+
+  if (!customerValidation.exists) {
+    console.log(`錯誤：${customerValidation.errorMessage}，取消添加訂單`);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: customerValidation.errorMessage
+    }));
+  }
+
   const totalAmount = validationResult.totalAmount;
 
   // 所有產品都找到了，開始添加訂單
