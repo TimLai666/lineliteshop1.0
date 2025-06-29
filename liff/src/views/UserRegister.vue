@@ -59,6 +59,7 @@ import UserProfileCard from '../components/UserProfileCard.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import MessageAlert from '../components/MessageAlert.vue'
 import LiffDebugPanel from '../components/LiffDebugPanel.vue'
+import { userApi, handleApiError } from '../services/index.js'
 
 const isLiffReady = ref(false)
 const profile = ref(null)
@@ -195,7 +196,7 @@ const handleRegister = async () => {
         // 準備註冊資料
         const registrationData = {
             lineUserId: profile.value.userId,
-            displayName: profile.value.displayName,
+            name: profile.value.displayName, // 改為 name 以符合 userService 的期望
             pictureUrl: profile.value.pictureUrl,
             statusMessage: profile.value.statusMessage,
             phone: registerData.value.phone,
@@ -207,17 +208,10 @@ const handleRegister = async () => {
 
         console.log('Registration data:', registrationData)
 
-        // 這裡你可以發送資料到你的後端 API
-        // const response = await fetch('/api/register', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(registrationData)
-        // })
+        // 使用 API 服務進行註冊
+        const response = await userApi.register(registrationData)
 
-        // 模擬 API 呼叫
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        console.log('註冊成功:', response)
 
         registerResult.value = {
             type: 'success',
@@ -236,7 +230,7 @@ const handleRegister = async () => {
         console.error('Registration failed:', error)
         registerResult.value = {
             type: 'error',
-            message: '註冊失敗，請稍後再試'
+            message: handleApiError(error, '註冊失敗，請稍後再試')
         }
     } finally {
         isRegistering.value = false
