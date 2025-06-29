@@ -31,11 +31,6 @@
                         <input type="date" id="birthday" v-model="registerData.birthday" />
                     </div>
 
-                    <div class="form-group">
-                        <label for="address">地址:</label>
-                        <textarea id="address" v-model="registerData.address" placeholder="請輸入地址" rows="3"></textarea>
-                    </div>
-
                     <button type="submit" :disabled="isRegistering" class="register-btn">
                         {{ isRegistering ? '註冊中...' : '完成註冊' }}
                     </button>
