@@ -27,9 +27,10 @@ function onEdit(e) {
       }
       break;
     case '商品':
-      // **新增商品時，確保商品名稱唯一，若名稱已存在則恢復原值並顯示警告訊息**
-      // **新增商品後，自動將庫存設為0並將狀態設為「下架」**
       if (col === 1 && row > 1) {
+        // **新增商品時，確保商品名稱唯一，若名稱已存在則恢復原值並顯示警告訊息**
+        // **新增商品後，自動將庫存設為0並將狀態設為「下架」**
+
         // 處理商品的名稱編輯
         if (!value) return; // 如果值為空，則不處理
 
@@ -46,6 +47,17 @@ function onEdit(e) {
         if (!e.oldValue) {
           sheet.getRange(row, 4).setValue(0); // 假設狀態在第5列
           sheet.getRange(row, 5).setValue('下架'); // 假設狀態在第5列
+        }
+      } else if (col === 5 && row > 1) {
+        // **若未設定價格，不允許「下架」以外的狀態**
+        const price = sheet.getRange(row, 3).getValue();
+        const status = value;
+        if (status !== '下架' && price <= 0) {
+          // 恢復原值
+          e.range.setValue(e.oldValue || '');
+          // 顯示警告訊息
+          SpreadsheetApp.getUi().alert('錯誤', '未設定價格或價格小於0時，商品狀態只能為「下架」！', SpreadsheetApp.getUi().ButtonSet.OK);
+          return;
         }
       }
       break;
