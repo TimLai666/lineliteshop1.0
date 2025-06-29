@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"path/filepath"
 
 	"lineliteshop1.0/internal/config"
 	"lineliteshop1.0/internal/services"
@@ -69,4 +70,28 @@ func (h *Handler) GetRichMenu(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Rich Menu management endpoint",
 	})
+}
+
+// ServeLIFF 提供LIFF前端靜態文件服務
+func (h *Handler) ServeLIFF(c *gin.Context) {
+	// 獲取請求的文件路徑
+	filePath := c.Param("filepath")
+
+	// 如果沒有指定文件路徑，默認提供 index.html
+	if filePath == "" || filePath == "/" {
+		filePath = "index.html"
+	}
+
+	// 構建完整的文件路徑
+	fullPath := filepath.Join("liff", "dist", filePath)
+
+	// 檢查文件是否存在
+	if _, err := http.Dir(".").Open(fullPath); err != nil {
+		// 如果文件不存在，返回 index.html (SPA 路由支持)
+		c.File("liff/dist/index.html")
+		return
+	}
+
+	// 提供靜態文件
+	c.File(fullPath)
 }
