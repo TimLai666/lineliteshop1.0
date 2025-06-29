@@ -108,3 +108,28 @@ function testGetOrders() {
         Logger.log('測試發生錯誤:', error);
     }
 }
+
+function testUpdateOrder() {
+    const orderData = {
+        action: 'UPDATE_ORDER',
+        order: {
+            id: 1, // 假設要更新的訂單ID
+            status: '已完成', // 更新訂單狀態
+            internal_note: '更新備註',
+        },
+    };
+
+    try {
+        const result = updateOrder(orderData);
+        const responseText = result.getContent();
+        const response = JSON.parse(responseText);
+
+        if (response.status === 'success') {
+            console.log('測試成功: 訂單已更新');
+        } else {
+            console.log('測試失敗:', response.message);
+        }
+    } catch (error) {
+        console.error('測試發生錯誤:', error);
+    }
+}

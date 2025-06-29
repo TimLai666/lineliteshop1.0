@@ -5,6 +5,8 @@ function doPost(e) {
   switch (data.action) {
     case 'ADD_ORDER':
       return addOrder(data);
+    case 'UPDATE_ORDER':
+      return updateOrder(data);
   }
 }
 
@@ -71,6 +73,40 @@ function addOrder(data) {
     order.customer_note           // H欄：顧客備註
   ];
   sheet.getRange(newRow, 5, 1, 4).setValues([orderData]);
+
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
+}
+
+// {
+//   action: 'UPDATE_ORDER',
+//     order: {
+//     id: '訂單ID', // 假設有一個訂單ID來識別訂單
+//     products: [{ product: '產品名', quantity: 數量 }]
+//     customer_id: '',
+//     customer_note: '顧客備註',
+//     status: '訂單狀態', // 例如 '待處理', '進行中','已完成', '取消'
+//     internal_note: '內部備註' // 可選
+//   },
+// }
+
+function updateOrder(data) {
+  const order = data.order;
+  const sheet = orderSheet;
+  const orderId = order.id;
+  if (!order.id || !checkOrderExists(orderId)) return ContentService.createTextOutput(JSON.stringify({
+    status: 'error',
+    message: '訂單不存在或ID無效'
+  }));
+
+  if (order.status) {
+    // 更新訂單狀態
+    sheet.getRange(orderId + 1, 5).setValue(order.status); // 假設狀態在第5列
+  }
+
+  if (order.internal_note) {
+    // 更新內部備註
+    sheet.getRange(orderId + 1, 9).setValue(order.internal_note); // 假設內部備註在第8列
+  }
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
 }
