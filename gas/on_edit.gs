@@ -26,5 +26,21 @@ function onEdit(e) {
         }
       }
       break;
+    case '商品':
+      // **新增商品時，確保商品名稱唯一，若名稱已存在則恢復原值並顯示警告訊息**
+      if (col === 1 && row > 1) {
+        // 處理商品的名稱編輯
+        if (!value) return; // 如果值為空，則不處理
+
+        // 檢查值是否唯一，如果不唯一則恢復原值並顯示警告
+        if (!isUniqueInColumn(sheet, 1, value, row)) {
+          // 恢復原值
+          e.range.setValue(e.oldValue || '');
+          // 顯示警告訊息
+          SpreadsheetApp.getUi().alert('錯誤', '此商品名稱已存在，請輸入不同的名稱！', SpreadsheetApp.getUi().ButtonSet.OK);
+          return;
+        }
+      }
+      break;
   }
 }
