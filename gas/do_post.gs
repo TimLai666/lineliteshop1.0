@@ -21,24 +21,18 @@ function addOrder(data) {
   const order = data.order;
   const sheet = orderSheet;
 
-  // 先檢查所有產品是否都存在，並計算總金額
-  let totalAmount = 0;
-  for (const productItem of order.product) {
-    const productName = productItem.product;
-    const quantity = productItem.quantity;
+  // 驗證所有產品是否存在，並計算總金額
+  const validationResult = validateProductsAndCalculateTotal(order.product);
 
-    const foundCell = productSheet.createTextFinder(productName).findNext();
-    if (!foundCell) {
-      console.log(`錯誤：找不到產品 "${productName}"，取消添加訂單`);
-      return ContentService.createTextOutput(JSON.stringify({
-        status: 'error',
-        message: `找不到產品: ${productName}`
-      }));
-    }
-    const productRow = foundCell.getRow();
-    const price = productSheet.getRange(productRow, 3).getValue(); // 假設價格在第三列
-    totalAmount += price * quantity; // 價格乘以數量
+  if (!validationResult.isValid) {
+    console.log(`錯誤：${validationResult.errorMessage}，取消添加訂單`);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: validationResult.errorMessage
+    }));
   }
+
+  const totalAmount = validationResult.totalAmount;
 
   // 所有產品都找到了，開始添加訂單
   // 檢查是否有足夠的空間添加新訂單
