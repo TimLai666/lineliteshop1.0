@@ -28,6 +28,7 @@ function onEdit(e) {
       break;
     case '商品':
       // **新增商品時，確保商品名稱唯一，若名稱已存在則恢復原值並顯示警告訊息**
+      // **新增商品後，自動將庫存設為0並將狀態設為「下架」**
       if (col === 1 && row > 1) {
         // 處理商品的名稱編輯
         if (!value) return; // 如果值為空，則不處理
@@ -39,6 +40,12 @@ function onEdit(e) {
           // 顯示警告訊息
           SpreadsheetApp.getUi().alert('錯誤', '此商品名稱已存在，請輸入不同的名稱！', SpreadsheetApp.getUi().ButtonSet.OK);
           return;
+        }
+
+        // 如果是新增商品，則自動將狀態設為「下架」
+        if (!e.oldValue) {
+          sheet.getRange(row, 4).setValue(0); // 假設狀態在第5列
+          sheet.getRange(row, 5).setValue('下架'); // 假設狀態在第5列
         }
       }
       break;
