@@ -4,7 +4,7 @@ function onEdit(e) {
   const col = e.range.getColumn();
   const row = e.range.getRow();
   let value;
-  if (col === 1 && row > 1) {
+  if (row > 1) {
     value = e.range.getValue();
   }
 
@@ -49,14 +49,25 @@ function onEdit(e) {
           sheet.getRange(row, 5).setValue('下架'); // 假設狀態在第5列
         }
       } else if (col === 5 && row > 1) {
-        // **若未設定價格，不允許「下架」以外的狀態**
+        // **若未設定價格或價格小於等於0，不允許「下架」以外的狀態**
+        // **若庫存小於等於0，不允許「有現貨」**
+
         const price = sheet.getRange(row, 3).getValue();
+        const inventory = sheet.getRange(row, 4).getValue();
         const status = value;
         if (status !== '下架' && price <= 0) {
           // 恢復原值
           e.range.setValue(e.oldValue || '');
           // 顯示警告訊息
-          SpreadsheetApp.getUi().alert('錯誤', '未設定價格或價格小於0時，商品狀態只能為「下架」！', SpreadsheetApp.getUi().ButtonSet.OK);
+          SpreadsheetApp.getUi().alert('錯誤', '未設定價格或價格小於等於0時，商品狀態只能為「下架」！', SpreadsheetApp.getUi().ButtonSet.OK);
+          return;
+        }
+
+        if (status === '有現貨' && inventory <= 0) {
+          // 恢復原值
+          e.range.setValue(e.oldValue || '');
+          // 顯示警告訊息
+          SpreadsheetApp.getUi().alert('錯誤', '庫存小於等於0時，商品狀態不能設為「有現貨」！', SpreadsheetApp.getUi().ButtonSet.OK);
           return;
         }
       }
