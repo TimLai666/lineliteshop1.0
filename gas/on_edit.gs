@@ -9,5 +9,21 @@ function onEdit(e) {
   }
 
   // todo: 根據工作表名稱和欄位值進行處理
-  switch (sheetName) {}
+  switch (sheetName) {
+    case '商品類別':
+      if (col === 1 && row > 1) {
+        // 處理商品類別的名稱編輯
+        if (!value) return; // 如果值為空，則不處理
+
+        // 檢查值是否唯一，如果不唯一則恢復原值並顯示警告
+        if (!isUniqueInColumn(sheet, 1, value, row)) {
+          // 恢復原值
+          e.range.setValue(e.oldValue || '');
+          // 顯示警告訊息
+          SpreadsheetApp.getUi().alert('錯誤', '此商品類別名稱已存在，請輸入不同的名稱！', SpreadsheetApp.getUi().ButtonSet.OK);
+          return;
+        }
+      }
+      break;
+  }
 }
