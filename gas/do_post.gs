@@ -5,6 +5,8 @@ function doPost(e) {
   switch (data.action) {
     case 'ADD_CUSTOMER':
       return addCustomer(data);
+    case 'UPDATE_CUSTOMER':
+      return updateCustomer(data);
     case 'ADD_ORDER':
       return addOrder(data);
     case 'UPDATE_ORDER':
@@ -74,6 +76,72 @@ function addCustomer(data) {
 
   // 設置 A、B、C、D 欄（ID、姓名、生日、電話）
   sheet.getRange(newRow, 1, 1, 4).setValues([[customer.id, customer.name, customer.birthday, customer.phone]]);
+
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
+}
+
+
+// {
+//   action: 'UPDATE_CUSTOMER',
+//   customer: {
+//     id: 'C001', // 顧客ID
+//     name: '新顧客姓名', // 可選
+//     birthday: '新顧客生日', // 格式: YYYY-MM-DD，可選
+//     phone: '新顧客電話' // 可選
+//   }
+// }
+
+function updateCustomer(data) {
+  const customer = data.customer;
+  const sheet = customerSheet;
+
+  // 檢查顧客ID是否存在
+  const existingCustomer = checkCustomerExists(customer.id);
+  if (!existingCustomer.exists) {
+    console.log(`錯誤：顧客ID ${customer.id} 不存在，取消更新顧客`);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: `顧客ID ${customer.id} 不存在`
+    }));
+  }
+
+  const rowToUpdate = existingCustomer.customerRow;
+
+  // 更新顧客姓名
+  if (customer.name) {
+    if (customer.name.trim() === '') {
+      console.log('錯誤：顧客姓名不能為空，取消更新顧客');
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: '顧客姓名不能為空'
+      }));
+    }
+    sheet.getRange(rowToUpdate, 2).setValue(customer.name);
+  }
+
+  // 更新顧客生日
+  if (customer.birthday) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(customer.birthday)) {
+      console.log('錯誤：顧客生日格式不正確，應為 YYYY-MM-DD');
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: '顧客生日格式不正確，應為 YYYY-MM-DD'
+      }));
+    }
+    sheet.getRange(rowToUpdate, 3).setValue(customer.birthday);
+  }
+
+  // 更新顧客電話
+  if (customer.phone) {
+    if (!/^\d+$/.test(customer.phone)) {
+      console.log('錯誤：顧客電話格式不正確，應為數字');
+      return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: '顧客電話格式不正確，應為數字'
+      }));
+    }
+    sheet.getRange(rowToUpdate, 4).setValue(customer.phone);
+  }
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
 }

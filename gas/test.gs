@@ -21,6 +21,29 @@ function testAddCustomer() {
     }
 }
 
+function testUpdateCustomer() {
+    const customerData = {
+        action: 'UPDATE_CUSTOMER',
+        customer: {
+            id: 'C001', // 假設要更新的顧客ID
+            name: '李小華', // 更新顧客姓名
+            phone: '0987654321', // 更新顧客電話
+        }
+    };
+    try {
+        const result = updateCustomer(customerData);
+        const responseText = result.getContent();
+        const response = JSON.parse(responseText);
+        if (response.status === 'success') {
+            console.log('測試成功: 顧客已更新');
+        } else {
+            console.log('測試失敗:', response.message);
+        }
+    } catch (error) {
+        console.error('測試發生錯誤:', error);
+    }
+}
+
 function testAddOrder() {
     const orderData = {
         order: {
