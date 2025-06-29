@@ -1,6 +1,8 @@
 # TODO List
 
-- [x] GAS api
+- [ ] GAS
+  - [x] 提供 API
+  - [ ] token驗證
 - [ ] liff 前端
   - [ ] 使用後端api
 - [ ] 後端
