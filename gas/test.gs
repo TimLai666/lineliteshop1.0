@@ -1,3 +1,26 @@
+function testAddCustomer() {
+    const customerData = {
+        customer: {
+            name: '王小明',
+            phone: '0912345678',
+            birthday: '1990-01-01', // 格式: YYYY-MM-DD
+            id: 'C002', // 假設顧客ID為 C001
+        },
+    };
+    try {
+        const result = addCustomer(customerData);
+        const responseText = result.getContent();
+        const response = JSON.parse(responseText);
+        if (response.status === 'success') {
+            console.log('測試成功: 顧客已添加');
+        } else {
+            console.log('測試失敗:', response.message);
+        }
+    } catch (error) {
+        console.error('測試發生錯誤:', error);
+    }
+}
+
 function testAddOrder() {
     const orderData = {
         order: {

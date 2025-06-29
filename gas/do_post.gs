@@ -3,12 +3,81 @@ function doPost(e) {
   const data = JSON.parse(e.postData.contents);
 
   switch (data.action) {
+    case 'ADD_CUSTOMER':
+      return addCustomer(data);
     case 'ADD_ORDER':
       return addOrder(data);
     case 'UPDATE_ORDER':
       return updateOrder(data);
   }
 }
+
+
+// {
+//   action: 'ADD_CUSTOMER',
+//   customer: {
+//     id: 'C001',
+//     name: '顧客姓名',
+//     birthday: '顧客生日', // 格式: YYYY-MM-DD
+//     phone: '顧客電話',
+//   }
+// }
+
+function addCustomer(data) {
+  const customer = data.customer;
+  const sheet = customerSheet;
+
+  // 檢查顧客ID是否已存在
+  const existingCustomer = checkCustomerExists(customer.id);
+  if (existingCustomer.exists) {
+    console.log(`錯誤：顧客ID ${customer.id} 已存在，取消添加顧客`);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: `顧客ID ${customer.id} 已存在`
+    }));
+  }
+
+  // 檢查顧客姓名是否為空
+  if (!customer.name || customer.name.trim() === '') {
+    console.log('錯誤：顧客姓名不能為空，取消添加顧客');
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: '顧客姓名不能為空'
+    }));
+  }
+
+  // 檢查生日格式是否正確
+  if (customer.birthday && !/^\d{4}-\d{2}-\d{2}$/.test(customer.birthday)) {
+    console.log('錯誤：顧客生日格式不正確，應為 YYYY-MM-DD');
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: '顧客生日格式不正確，應為 YYYY-MM-DD'
+    }));
+  }
+
+  // 檢查電話格式是否正確（假設電話格式為數字）
+  if (customer.phone && !/^\d+$/.test(customer.phone)) {
+    console.log('錯誤：顧客電話格式不正確，應為數字');
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: '顧客電話格式不正確，應為數字'
+    }));
+  }
+
+  // 所有檢查通過，開始添加顧客
+  const lastRow = sheet.getLastRow();
+  if (lastRow >= sheet.getMaxRows()) {
+    sheet.insertRowAfter(lastRow);
+  }
+
+  const newRow = lastRow + 1;
+
+  // 設置 A、B、C、D 欄（ID、姓名、生日、電話）
+  sheet.getRange(newRow, 1, 1, 4).setValues([[customer.id, customer.name, customer.birthday, customer.phone]]);
+
+  return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
+}
+
 
 // {
 //   action: 'ADD_ORDER',
@@ -76,6 +145,7 @@ function addOrder(data) {
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success' }));
 }
+
 
 // {
 //   action: 'UPDATE_ORDER',
