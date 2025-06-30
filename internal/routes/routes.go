@@ -14,8 +14,8 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 	// 健康檢查端點
 	r.GET("/health", handler.HealthCheck)
 
-	// Rich Menu 管理端點
-	r.GET("/richmenu", handler.GetRichMenu)
+	// Rich Menu 控制端點 - 簡單的切換功能
+	r.POST("/richmenu/switch/:userId/:richMenuId", handler.SwitchUserRichMenu) // 切換使用者的 Rich Menu
 
 	// LIFF 前端應用服務
 	// 提供靜態文件服務，支援 SPA 路由

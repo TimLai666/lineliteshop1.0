@@ -65,13 +65,6 @@ func (h *Handler) HealthCheck(c *gin.Context) {
 	})
 }
 
-// GetRichMenu Rich Menu 管理端點（預留）
-func (h *Handler) GetRichMenu(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Rich Menu management endpoint",
-	})
-}
-
 // ServeLIFF 提供LIFF前端靜態文件服務
 func (h *Handler) ServeLIFF(c *gin.Context) {
 	// 獲取請求的文件路徑
@@ -94,4 +87,28 @@ func (h *Handler) ServeLIFF(c *gin.Context) {
 
 	// 提供靜態文件
 	c.File(fullPath)
+}
+
+// SwitchUserRichMenu 切換使用者的 Rich Menu
+func (h *Handler) SwitchUserRichMenu(c *gin.Context) {
+	userId := c.Param("userId")
+	richMenuId := c.Param("richMenuId")
+
+	if userId == "" || richMenuId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "使用者ID和Rich Menu ID不能為空"})
+		return
+	}
+
+	err := h.lineService.SwitchUserRichMenu(userId, richMenuId)
+	if err != nil {
+		log.Printf("切換 Rich Menu 失敗: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "切換 Rich Menu 失敗"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":    "成功切換 Rich Menu",
+		"userId":     userId,
+		"richMenuId": richMenuId,
+	})
 }
