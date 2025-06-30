@@ -8,14 +8,18 @@ import (
 
 // SetupRoutes 設定所有路由
 func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
-	// LINE Bot webhook 回調端點
-	r.POST("/callback", handler.HandleWebhook)
-
 	// 健康檢查端點
-	r.GET("/health", handler.HealthCheck)
+	r.GET("/", handler.HealthCheck)
 
-	// Rich Menu 控制端點 - 簡單的切換功能
-	r.POST("/richmenu/switch/:userId/:richMenuId", handler.SwitchUserRichMenu) // 切換使用者的 Rich Menu
+	apiGroup := r.Group("/api")
+	{
+		// LINE Bot webhook 回調端點
+		apiGroup.POST("/callback", handler.HandleWebhook)
+		apiGroup.POST("/customer-register", handler.HandleCustomerRegister)
+
+		// Rich Menu 控制端點 - 簡單的切換功能
+		apiGroup.POST("/richmenu/switch/:userId/:richMenuId", handler.SwitchUserRichMenu) // 切換使用者的 Rich Menu
+	}
 
 	// LIFF 前端應用服務
 	// 提供靜態文件服務，支援 SPA 路由
