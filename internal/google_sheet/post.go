@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 
 	"lineliteshop1.0/internal/config"
@@ -11,9 +12,9 @@ import (
 )
 
 type apiPostReqData struct {
-	Token  string `json:"token"`
-	Action string `json:"action"`
-	Data   any    `json:"data"`
+	Token    string          `json:"token"`
+	Action   string          `json:"action"`
+	Customer models.Customer `json:"customer"`
 }
 
 type apiPostResponse struct {
@@ -34,7 +35,13 @@ func callPostApi(action string, data any) error {
 	reqData := apiPostReqData{
 		Token:  config.GOOGLE_SHEET_API_TOKEN,
 		Action: action,
-		Data:   data,
+	}
+
+	switch v := data.(type) {
+	case models.Customer:
+		reqData.Customer = v
+	default:
+		return errors.New("unsupported data type for Google Sheet API")
 	}
 
 	j, err := json.Marshal(reqData)
@@ -42,19 +49,40 @@ func callPostApi(action string, data any) error {
 		return err
 	}
 
-	res, err := http.Post(config.GOOGLE_SHEET_API_URL, "application/json", bytes.NewBuffer(j))
+	// 創建 HTTP 請求並設置必要的 headers
+	req, err := http.NewRequest("POST", config.GOOGLE_SHEET_API_URL, bytes.NewBuffer(j))
+	if err != nil {
+		return err
+	}
+
+	// 設置必要的 HTTP headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+	req.Header.Set("User-Agent", "LineLiteShop/1.0")
+
+	// 執行請求
+	client := &http.Client{}
+	res, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
 
+	// 先讀取完整的回應內容用於調試
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return errors.New("failed to read response body: " + err.Error())
+	}
+
 	if res.StatusCode != http.StatusOK {
-		return errors.New("failed to post, status code: " + res.Status)
+		return errors.New("failed to post, status code: " + res.Status + ", body: " + string(body))
 	}
 
 	var response apiPostResponse
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		return err
+	if err := json.Unmarshal(body, &response); err != nil {
+		// 如果無法解析 JSON，顯示實際收到的內容
+		return errors.New("received non-JSON response: " + string(body))
 	}
 	if response.Status != "success" {
 		return errors.New("failed to post: " + response.Message)
