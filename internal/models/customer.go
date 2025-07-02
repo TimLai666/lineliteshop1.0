@@ -1,4 +1,4 @@
-package google_sheet
+package models
 
 type Customer struct {
 	ID       string `json:"id"`

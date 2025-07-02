@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"lineliteshop1.0/internal/config"
+	"lineliteshop1.0/internal/models"
 )
 
 type apiPostReqData struct {
@@ -19,7 +20,7 @@ type apiPostResponse struct {
 	Message string `json:"message"`
 }
 
-func AddCustomer(customer Customer) error {
+func AddCustomer(customer models.Customer) error {
 	if customer.ID == "" {
 		return errors.New("customer ID is required")
 	}
