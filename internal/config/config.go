@@ -11,8 +11,9 @@ const devMode bool = false
 
 var (
 	// OLLAMA_BASE_URL     string
-	LINE_CHANNEL_TOKEN  string
-	LINE_CHANNEL_SECRET string
+	LINE_CHANNEL_TOKEN   string
+	LINE_CHANNEL_SECRET  string
+	GOOGLE_SHEET_API_URL string
 )
 
 func init() {
@@ -27,4 +28,6 @@ func init() {
 	// }
 	LINE_CHANNEL_TOKEN = os.Getenv("LINE_CHANNEL_TOKEN")
 	LINE_CHANNEL_SECRET = os.Getenv("LINE_CHANNEL_SECRET")
+
+	GOOGLE_SHEET_API_URL = os.Getenv("GOOGLE_SHEET_API_BASE_URL")
 }

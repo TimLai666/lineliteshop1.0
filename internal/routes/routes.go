@@ -19,6 +19,11 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 
 		// Rich Menu 控制端點 - 簡單的切換功能
 		apiGroup.POST("/richmenu/switch/:userId/:richMenuId", handler.SwitchUserRichMenu) // 切換使用者的 Rich Menu
+
+		dataGroup := apiGroup.Group("/data")
+		{
+			dataGroup.POST("/customer", handler.HandleCustomerRegister)
+		}
 	}
 
 	// LIFF 前端應用服務

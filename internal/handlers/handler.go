@@ -60,6 +60,7 @@ func (h *Handler) HandleWebhook(c *gin.Context) {
 // HandleCustomerRegister 處理客戶註冊請求
 func (h *Handler) HandleCustomerRegister(c *gin.Context) {
 	// todo: 實現客戶註冊邏輯
+
 }
 
 // HealthCheck 健康檢查端點
