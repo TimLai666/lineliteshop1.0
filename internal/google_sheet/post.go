@@ -11,6 +11,7 @@ import (
 )
 
 type apiPostReqData struct {
+	Token  string `json:"token"`
 	Action string `json:"action"`
 	Data   any    `json:"data"`
 }
@@ -31,6 +32,7 @@ func AddCustomer(customer models.Customer) error {
 
 func callPostApi(action string, data any) error {
 	reqData := apiPostReqData{
+		Token:  config.GOOGLE_SHEET_API_TOKEN,
 		Action: action,
 		Data:   data,
 	}
@@ -47,7 +49,7 @@ func callPostApi(action string, data any) error {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return errors.New("failed to add customer, status code: " + res.Status)
+		return errors.New("failed to post, status code: " + res.Status)
 	}
 
 	var response apiPostResponse
@@ -55,7 +57,7 @@ func callPostApi(action string, data any) error {
 		return err
 	}
 	if response.Status != "success" {
-		return errors.New("failed to add customer: " + response.Message)
+		return errors.New("failed to post: " + response.Message)
 	}
 	return nil
 }
