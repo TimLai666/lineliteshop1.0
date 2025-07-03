@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 
 	"lineliteshop1.0/internal/config"
-	"lineliteshop1.0/internal/google_sheet"
-	"lineliteshop1.0/internal/models"
 	"lineliteshop1.0/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -57,33 +55,6 @@ func (h *Handler) HandleWebhook(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
-}
-
-// HandleCustomerRegister 處理客戶註冊請求
-func (h *Handler) HandleCustomerRegister(c *gin.Context) {
-	// todo: 實現客戶註冊邏輯
-	customer := models.Customer{}
-	if err := c.ShouldBindJSON(&customer); err != nil {
-		log.Printf("解析客戶資料失敗: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
-		return
-	}
-
-	// 呼叫 Google Sheet API 新增客戶資料
-	if customer.ID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Customer ID is required"})
-		return
-	}
-	err := google_sheet.AddCustomer(customer)
-	if err != nil {
-		log.Printf("新增客戶資料失敗: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register customer"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"status":  "success",
-		"message": "Customer registered successfully",
-	})
 }
 
 // HealthCheck 健康檢查端點

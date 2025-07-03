@@ -15,6 +15,7 @@ type apiPostReqData struct {
 	Token    string          `json:"token"`
 	Action   string          `json:"action"`
 	Customer models.Customer `json:"customer"`
+	Order    models.Order    `json:"order"`
 }
 
 type apiPostResponse struct {
@@ -23,12 +24,13 @@ type apiPostResponse struct {
 }
 
 func AddCustomer(customer models.Customer) error {
-	if customer.ID == "" {
-		return errors.New("customer ID is required")
-	}
-
 	// 呼叫 Google Sheet API 來新增客戶資料
 	return callPostApi("ADD_CUSTOMER", customer)
+}
+
+func AddOrder(order models.Order) error {
+	// 呼叫 Google Sheet API 來新增訂單資料
+	return callPostApi("ADD_ORDER", order)
 }
 
 func callPostApi(action string, data any) error {
@@ -40,6 +42,8 @@ func callPostApi(action string, data any) error {
 	switch v := data.(type) {
 	case models.Customer:
 		reqData.Customer = v
+	case models.Order:
+		reqData.Order = v
 	default:
 		return errors.New("unsupported data type for Google Sheet API")
 	}
