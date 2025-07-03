@@ -28,6 +28,11 @@ func AddCustomer(customer models.Customer) error {
 	return callPostApi("ADD_CUSTOMER", customer)
 }
 
+func UpdateCustomer(customer models.Customer) error {
+	// 呼叫 Google Sheet API 來更新客戶資料
+	return callPostApi("UPDATE_CUSTOMER", customer)
+}
+
 func AddOrder(order models.Order) error {
 	// 呼叫 Google Sheet API 來新增訂單資料
 	return callPostApi("ADD_ORDER", order)

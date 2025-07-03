@@ -35,6 +35,32 @@ func (h *Handler) HandleCustomerRegister(c *gin.Context) {
 	})
 }
 
+func (h *Handler) HandleUpdateCustomer(c *gin.Context) {
+	customer := models.Customer{}
+	if err := c.ShouldBindJSON(&customer); err != nil {
+		log.Printf("解析客戶資料失敗: %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
+
+	if customer.ID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Customer ID is required for update"})
+		return
+	}
+
+	// 呼叫 Google Sheet API 更新客戶資料
+	err := google_sheet.UpdateCustomer(customer)
+	if err != nil {
+		log.Printf("更新客戶資料失敗: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update customer"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Customer updated successfully",
+	})
+}
+
 func (h *Handler) HandleAddOrder(c *gin.Context) {
 	order := models.Order{}
 	if err := c.ShouldBindJSON(&order); err != nil {
