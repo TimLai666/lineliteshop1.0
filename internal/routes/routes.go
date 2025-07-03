@@ -20,14 +20,14 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 		// Rich Menu 控制端點 - 簡單的切換功能
 		apiGroup.POST("/richmenu/switch/:userId/:richMenuId", handler.SwitchUserRichMenu) // 切換使用者的 Rich Menu
 
-		dataGroup := apiGroup.Group("/data")
+		apiDataGroup := apiGroup.Group("/data")
 		{
 			// customer
-			dataGroup.POST("/customer", handler.HandleCustomerRegister)
-			dataGroup.PUT("/customer", handler.HandleUpdateCustomer)
+			apiDataGroup.POST("/customer", handler.HandleCustomerRegister)
+			apiDataGroup.PUT("/customer", handler.HandleUpdateCustomer)
 
 			// order
-			dataGroup.POST("/order", handler.HandleAddOrder)
+			apiDataGroup.POST("/order", handler.HandleAddOrder)
 		}
 	}
 
