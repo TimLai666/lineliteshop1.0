@@ -28,6 +28,7 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 
 			// order
 			apiDataGroup.POST("/order", handler.HandleAddOrder)
+			apiDataGroup.PUT("/order", handler.HandleUpdateOrder)
 		}
 	}
 

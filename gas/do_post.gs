@@ -334,8 +334,8 @@ function updateOrder(data) {
   const order = data.order;
   const sheet = orderSheet;
   const orderId = order.id;
-  const rowToUpdate = orderId + 1;
-  if (!order.id || !checkOrderExists(orderId)) return ContentService.createTextOutput(JSON.stringify({
+  const rowToUpdate = findOrderRow(orderId);
+  if (!order.id || rowToUpdate === -1) return ContentService.createTextOutput(JSON.stringify({
     status: 'error',
     message: '訂單不存在或ID無效'
   })).setMimeType(ContentService.MimeType.JSON);

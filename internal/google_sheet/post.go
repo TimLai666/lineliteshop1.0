@@ -38,6 +38,11 @@ func AddOrder(order models.Order) error {
 	return callPostApi("ADD_ORDER", order)
 }
 
+func UpdateOrder(order models.Order) error {
+	// 呼叫 Google Sheet API 來更新訂單資料
+	return callPostApi("UPDATE_ORDER", order)
+}
+
 func callPostApi(action string, data any) error {
 	reqData := apiPostReqData{
 		Token:  config.GOOGLE_SHEET_API_TOKEN,
