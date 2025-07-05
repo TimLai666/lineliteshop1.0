@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strconv"
 
 	"lineliteshop1.0/internal/config"
 	"lineliteshop1.0/internal/models"
@@ -83,6 +84,117 @@ func parseCategory(itemMap map[string]any) (*models.Category, error) {
 		Name:        name,
 		Description: description,
 		IsActive:    isActive,
+	}, nil
+}
+
+func GetProducts() ([]models.Product, error) {
+	// 呼叫 Google Sheet API 來獲取商品資料
+	apiResponse, err := callGetApi("PRODUCTS")
+	if err != nil {
+		return nil, err
+	}
+
+	if apiResponse.Data == nil {
+		return nil, nil
+	}
+
+	products := make([]models.Product, 0, len(apiResponse.Data))
+	for _, item := range apiResponse.Data {
+		itemMap, ok := item.(map[string]any)
+		if !ok {
+			return nil, errors.New("invalid item format in product data")
+		}
+
+		product, err := parseProduct(itemMap)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, *product)
+	}
+
+	return products, nil
+}
+
+// parseProduct 解析單個商品項目
+func parseProduct(itemMap map[string]any) (*models.Product, error) {
+	name, ok := itemMap["name"].(string)
+	if !ok {
+		return nil, errors.New("invalid name format in product data")
+	}
+
+	category, ok := itemMap["category"].(string)
+	if !ok {
+		return nil, errors.New("invalid category format in product data")
+	}
+
+	var priceF64 float64
+	switch price := itemMap["price"].(type) {
+	case float64:
+		// 正常情況下的價格格式
+		priceF64 = price
+	case int:
+		// 如果價格是整數格式，轉換為浮點數
+		priceF64 = float64(price)
+	case string:
+		// 如果價格是字符串格式，嘗試轉換為浮點數
+		var err error
+		if price == "" {
+			priceF64 = 0.0 // 如果價格為空字符串，則設置為 0
+		} else {
+			priceF64, err = strconv.ParseFloat(price, 64)
+			if err != nil {
+				return nil, errors.New("invalid price format in product data")
+			}
+		}
+	default:
+		return nil, errors.New("invalid price format in product data")
+	}
+
+	var stockInt int
+	switch stock := itemMap["stock"].(type) {
+	case float64:
+		// 正常情況下的庫存格式
+		stockInt = int(stock)
+	case int:
+		// 如果庫存是整數格式，直接使用
+		stockInt = stock
+	case string:
+		// 如果庫存是字符串格式，嘗試轉換為整數
+		var err error
+		if stock == "" {
+			stockInt = 0 // 如果庫存為空字符串，則設置為 0
+		} else {
+			stockInt, err = strconv.Atoi(stock)
+			if err != nil {
+				return nil, errors.New("invalid stock format in product data")
+			}
+		}
+	default:
+		return nil, errors.New("invalid stock format in product data")
+	}
+
+	status, ok := itemMap["status"].(string)
+	if !ok {
+		return nil, errors.New("invalid status format in product data")
+	}
+
+	description := ""
+	if desc, exists := itemMap["description"]; exists {
+		if d, ok := desc.(string); ok {
+			description = d
+		} else {
+			return nil, errors.New("invalid description format in product data")
+		}
+	}
+
+	return &models.Product{
+		Name:        name,
+		Category:    category,
+		Price:       priceF64,
+		Stock:       stockInt,
+		Status:      status,
+		Description: description,
 	}, nil
 }
 

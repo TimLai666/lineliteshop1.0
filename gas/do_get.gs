@@ -71,7 +71,8 @@ function getProducts() {
         category: row[1],
         price: row[2],
         stock: row[3],
-        status: row[4]
+        status: row[4],
+        description: row[5],
     }));
 
     return ContentService.createTextOutput(JSON.stringify({
