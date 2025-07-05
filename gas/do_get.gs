@@ -38,7 +38,7 @@ function getCategories() {
     if (!sheet) {
         return ContentService.createTextOutput(JSON.stringify({
             status: 'error',
-            message: 'Sheet not found'
+            message: 'Sheet not found',
         })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -49,7 +49,10 @@ function getCategories() {
         isActive: row[2] === '是'
     }));
 
-    return ContentService.createTextOutput(JSON.stringify(categories))
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        data: categories,
+    }))
         .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -58,7 +61,7 @@ function getProducts() {
     if (!sheet) {
         return ContentService.createTextOutput(JSON.stringify({
             status: 'error',
-            message: 'Sheet not found'
+            message: 'Sheet not found',
         })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -71,7 +74,10 @@ function getProducts() {
         status: row[4]
     }));
 
-    return ContentService.createTextOutput(JSON.stringify(products))
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        data: products,
+    }))
         .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -80,7 +86,7 @@ function getCustomers() {
     if (!sheet) {
         return ContentService.createTextOutput(JSON.stringify({
             status: 'error',
-            message: 'Sheet not found'
+            message: 'Sheet not found',
         })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -93,7 +99,10 @@ function getCustomers() {
         note: row[4]
     }));
 
-    return ContentService.createTextOutput(JSON.stringify(customers))
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        data: customers,
+    }))
         .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -102,7 +111,7 @@ function getOrders() {
     if (!sheet) {
         return ContentService.createTextOutput(JSON.stringify({
             status: 'error',
-            message: 'Sheet not found'
+            message: 'Sheet not found',
         })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -123,6 +132,9 @@ function getOrders() {
 
     }));
 
-    return ContentService.createTextOutput(JSON.stringify(orders))
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        data: orders,
+    }))
         .setMimeType(ContentService.MimeType.JSON);
 }
