@@ -3,7 +3,6 @@ package google_sheet
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -14,7 +13,7 @@ import (
 type apiGetResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
-	Data    any    `json:"data"`
+	Data    []any  `json:"data"`
 }
 
 func GetCategories() ([]models.Category, error) {
@@ -29,13 +28,8 @@ func GetCategories() ([]models.Category, error) {
 		return nil, errors.New("no data found in API response")
 	}
 
-	fmt.Print("API Response Data: ", apiResponseData)
-	categoryMap, ok := apiResponseData.([]any)
-	if !ok {
-		return nil, errors.New("invalid data format in API response")
-	}
 	categories := make([]models.Category, 0)
-	for _, item := range categoryMap {
+	for _, item := range apiResponseData {
 		itemMap, ok := item.(map[string]any)
 		if !ok {
 			return nil, errors.New("invalid item format in category data")
