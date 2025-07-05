@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/HazelnutParadise/Go-Utils/asyncutil"
 	"lineliteshop1.0/internal/config"
 	"lineliteshop1.0/internal/models"
 )
@@ -201,6 +202,56 @@ func parseProduct(itemMap map[string]any) (*models.Product, error) {
 		Status:      status,
 		Description: description,
 	}, nil
+}
+
+func GetCustomerByID(id string) (*models.Customer, error) {
+	// 呼叫 Google Sheet API 來獲取客戶資料
+	apiResponse, err := callGetApi("CUSTOMERS")
+	if err != nil {
+		return nil, err
+	}
+
+	if apiResponse.Data == nil {
+		return nil, nil
+	}
+
+	var customer *models.Customer
+	asyncutil.ParallelForEach(apiResponse.Data, func(_, item any) {
+		itemMap, ok := item.(map[string]any)
+		if !ok {
+			return
+		}
+
+		c, err := parseCustomer(itemMap)
+		if err != nil {
+			return
+		}
+
+		if c.ID == id {
+			customer = c // 找到匹配的客戶，將其設置為結果
+			return       // 找到後可以提前退出
+		}
+	})
+	// for _, item := range apiResponse.Data {
+	// 	itemMap, ok := item.(map[string]any)
+	// 	if !ok {
+	// 		return nil, errors.New("invalid item format in customer data")
+	// 	}
+
+	// 	customer, err := parseCustomer(itemMap)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	if customer.ID == id {
+	// 		return customer, nil
+	// 	}
+	// }
+
+	if customer != nil {
+		return customer, nil
+	}
+	return nil, errors.New("customer not found")
 }
 
 func GetCustomers() ([]models.Customer, error) {

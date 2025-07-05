@@ -75,6 +75,27 @@ func (h *Handler) HandleGetCustomers(c *gin.Context) {
 	})
 }
 
+func (h *Handler) HandleGetCustomer(c *gin.Context) {
+	customerID := c.Param("id")
+	if customerID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Customer ID is required"})
+		return
+	}
+
+	// 呼叫 Google Sheet API 獲取特定客戶資料
+	customer, err := google_sheet.GetCustomerByID(customerID)
+	if err != nil {
+		log.Printf("獲取客戶 %s 資料失敗: %v", customerID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get customer"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Customer retrieved successfully",
+		"data":    customer,
+	})
+}
+
 // HandleCustomerRegister 處理客戶註冊請求
 func (h *Handler) HandleCustomerRegister(c *gin.Context) {
 	customer := models.Customer{}
@@ -127,7 +148,7 @@ func (h *Handler) HandleUpdateCustomer(c *gin.Context) {
 	})
 }
 
-func (h *Handler) HandleAddOrder(c *gin.Context) {
+func (h *Handler) HandlePostOrder(c *gin.Context) {
 	order := models.Order{}
 	if err := c.ShouldBindJSON(&order); err != nil {
 		log.Printf("解析訂單資料失敗: %v", err)
