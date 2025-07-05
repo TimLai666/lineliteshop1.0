@@ -23,45 +23,54 @@ func GetCategories() ([]models.Category, error) {
 		return nil, err
 	}
 
-	apiResponseData := apiResponse.Data
-	if apiResponseData == nil {
+	if apiResponse.Data == nil {
 		return nil, errors.New("no data found in API response")
 	}
 
-	categories := make([]models.Category, 0)
-	for _, item := range apiResponseData {
+	categories := make([]models.Category, 0, len(apiResponse.Data))
+	for _, item := range apiResponse.Data {
 		itemMap, ok := item.(map[string]any)
 		if !ok {
 			return nil, errors.New("invalid item format in category data")
 		}
 
-		name, description, isActive := "", "", false
-
-		name, ok = itemMap["name"].(string)
-		if !ok {
-			return nil, errors.New("invalid name format in category data")
+		category, err := parseCategory(itemMap)
+		if err != nil {
+			return nil, err
 		}
 
-		if itemMap["description"] != nil {
-			description, ok = itemMap["description"].(string)
-			if !ok {
-				return nil, errors.New("invalid description format in category data")
-			}
-		}
-
-		isActive, ok = itemMap["is_active"].(bool)
-		if !ok {
-			return nil, errors.New("invalid is_active format in category data")
-		}
-
-		categories = append(categories, models.Category{
-			Name:        name,
-			Description: description,
-			IsActive:    isActive,
-		})
+		categories = append(categories, category)
 	}
 
 	return categories, nil
+}
+
+// parseCategory 解析單個分類項目
+func parseCategory(itemMap map[string]any) (models.Category, error) {
+	name, ok := itemMap["name"].(string)
+	if !ok {
+		return models.Category{}, errors.New("invalid name format in category data")
+	}
+
+	description := ""
+	if desc := itemMap["description"]; desc != nil {
+		if d, ok := desc.(string); ok {
+			description = d
+		} else {
+			return models.Category{}, errors.New("invalid description format in category data")
+		}
+	}
+
+	isActive, ok := itemMap["is_active"].(bool)
+	if !ok {
+		return models.Category{}, errors.New("invalid is_active format in category data")
+	}
+
+	return models.Category{
+		Name:        name,
+		Description: description,
+		IsActive:    isActive,
+	}, nil
 }
 
 func callGetApi(sheet string) (*apiGetResponse, error) {
