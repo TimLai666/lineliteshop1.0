@@ -24,6 +24,27 @@ func (h *Handler) HandleGetCategories(c *gin.Context) {
 	})
 }
 
+func (h *Handler) HandleGetCategory(c *gin.Context) {
+	categoryName := c.Param("name")
+	if categoryName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Category name is required"})
+		return
+	}
+
+	// 呼叫 Google Sheet API 獲取特定商品分類資料
+	category, err := google_sheet.GetCategoryByName(categoryName)
+	if err != nil {
+		log.Printf("獲取商品分類 %s 失敗: %v", categoryName, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get category"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Category retrieved successfully",
+		"data":    category,
+	})
+}
+
 // HandleCustomerRegister 處理客戶註冊請求
 func (h *Handler) HandleCustomerRegister(c *gin.Context) {
 	customer := models.Customer{}

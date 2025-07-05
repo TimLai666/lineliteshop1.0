@@ -16,6 +16,19 @@ type apiGetResponse struct {
 	Data    []any  `json:"data"`
 }
 
+func GetCategoryByName(name string) (*models.Category, error) {
+	categories, err := GetCategories()
+	if err != nil {
+		return nil, err
+	}
+	for _, category := range categories {
+		if category.Name == name {
+			return &category, nil
+		}
+	}
+	return nil, errors.New("category not found")
+}
+
 func GetCategories() ([]models.Category, error) {
 	// 呼叫 Google Sheet API 來獲取商品分類資料
 	apiResponse, err := callGetApi("CATEGORIES")
@@ -39,17 +52,17 @@ func GetCategories() ([]models.Category, error) {
 			return nil, err
 		}
 
-		categories = append(categories, category)
+		categories = append(categories, *category)
 	}
 
 	return categories, nil
 }
 
 // parseCategory 解析單個分類項目
-func parseCategory(itemMap map[string]any) (models.Category, error) {
+func parseCategory(itemMap map[string]any) (*models.Category, error) {
 	name, ok := itemMap["name"].(string)
 	if !ok {
-		return models.Category{}, errors.New("invalid name format in category data")
+		return nil, errors.New("invalid name format in category data")
 	}
 
 	description := ""
@@ -57,16 +70,16 @@ func parseCategory(itemMap map[string]any) (models.Category, error) {
 		if d, ok := desc.(string); ok {
 			description = d
 		} else {
-			return models.Category{}, errors.New("invalid description format in category data")
+			return nil, errors.New("invalid description format in category data")
 		}
 	}
 
 	isActive, ok := itemMap["is_active"].(bool)
 	if !ok {
-		return models.Category{}, errors.New("invalid is_active format in category data")
+		return nil, errors.New("invalid is_active format in category data")
 	}
 
-	return models.Category{
+	return &models.Category{
 		Name:        name,
 		Description: description,
 		IsActive:    isActive,
