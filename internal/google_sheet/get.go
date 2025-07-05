@@ -37,7 +37,7 @@ func GetCategories() ([]models.Category, error) {
 	}
 
 	if apiResponse.Data == nil {
-		return nil, errors.New("no data found in API response")
+		return nil, nil
 	}
 
 	categories := make([]models.Category, 0, len(apiResponse.Data))
