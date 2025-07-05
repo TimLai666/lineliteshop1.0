@@ -22,6 +22,9 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 
 		apiDataGroup := apiGroup.Group("/data")
 		{
+			// categories
+			apiDataGroup.GET("/categories", handler.HandleGetCategories)
+
 			// customer
 			apiDataGroup.POST("/customer", handler.HandleCustomerRegister)
 			apiDataGroup.PUT("/customer", handler.HandleUpdateCustomer)

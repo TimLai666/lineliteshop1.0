@@ -9,6 +9,21 @@ import (
 	"lineliteshop1.0/internal/models"
 )
 
+func (h *Handler) HandleGetCategories(c *gin.Context) {
+	// 呼叫 Google Sheet API 獲取商品分類資料
+	categories, err := google_sheet.GetCategories()
+	if err != nil {
+		log.Printf("獲取商品分類資料失敗: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get categories"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Categories retrieved successfully",
+		"data":    categories,
+	})
+}
+
 // HandleCustomerRegister 處理客戶註冊請求
 func (h *Handler) HandleCustomerRegister(c *gin.Context) {
 	customer := models.Customer{}
