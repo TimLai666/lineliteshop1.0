@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"lineliteshop1.0/internal/config"
 	"lineliteshop1.0/internal/models"
@@ -123,9 +124,13 @@ func parseProduct(itemMap map[string]any) (*models.Product, error) {
 		return nil, errors.New("invalid name format in product data")
 	}
 
-	category, ok := itemMap["category"].(string)
-	if !ok {
-		return nil, errors.New("invalid category format in product data")
+	category := ""
+	if cat, exists := itemMap["category"]; exists {
+		if c, ok := cat.(string); ok {
+			category = c
+		} else {
+			return nil, errors.New("invalid category format in product data")
+		}
 	}
 
 	var priceF64 float64
@@ -196,6 +201,131 @@ func parseProduct(itemMap map[string]any) (*models.Product, error) {
 		Status:      status,
 		Description: description,
 	}, nil
+}
+
+func GetCustomers() ([]models.Customer, error) {
+	// 呼叫 Google Sheet API 來獲取客戶資料
+	apiResponse, err := callGetApi("CUSTOMERS")
+	if err != nil {
+		return nil, err
+	}
+
+	if apiResponse.Data == nil {
+		return nil, nil
+	}
+
+	customers := make([]models.Customer, 0, len(apiResponse.Data))
+	for _, item := range apiResponse.Data {
+		itemMap, ok := item.(map[string]any)
+		if !ok {
+			return nil, errors.New("invalid item format in customer data")
+		}
+
+		customer, err := parseCustomer(itemMap)
+		if err != nil {
+			return nil, err
+		}
+
+		customers = append(customers, *customer)
+	}
+
+	return customers, nil
+}
+
+// parseCustomer 解析單個客戶項目
+func parseCustomer(itemMap map[string]any) (*models.Customer, error) {
+	// ID 是必填欄位
+	id, ok := itemMap["id"].(string)
+	if !ok {
+		return nil, errors.New("invalid id format in customer data")
+	}
+
+	// 其他欄位為選填，如果不存在或格式錯誤則設為空字串
+	name := ""
+	if nameVal, exists := itemMap["name"]; exists {
+		if n, ok := nameVal.(string); ok {
+			name = n
+		}
+	}
+
+	email := ""
+	if emailVal, exists := itemMap["email"]; exists {
+		if e, ok := emailVal.(string); ok {
+			email = e
+		}
+	}
+
+	phone := ""
+	if phoneVal, exists := itemMap["phone"]; exists {
+		if p, ok := phoneVal.(string); ok {
+			phone = p
+		}
+	}
+
+	birthday := ""
+	if birthdayVal, exists := itemMap["birthday"]; exists {
+		birthday = parseBirthday(birthdayVal)
+	}
+
+	return &models.Customer{
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Phone:    phone,
+		Birthday: birthday,
+	}, nil
+}
+
+// parseBirthday 解析生日欄位，處理時區轉換問題
+func parseBirthday(birthdayVal any) string {
+	switch v := birthdayVal.(type) {
+	case string:
+		// 如果已經是字串格式，直接返回
+		if v == "" {
+			return ""
+		}
+
+		// 嘗試解析各種可能的日期格式
+		formats := []string{
+			"2006-01-02T15:04:05.000Z", // ISO 8601 格式
+			"2006-01-02T15:04:05Z",     // ISO 8601 簡化格式
+			"2006-01-02",               // 日期格式
+			"2006/01/02",               // 斜線分隔
+			"1990/1/1",                 // 單數字月日
+		}
+
+		for _, format := range formats {
+			if t, err := time.Parse(format, v); err == nil {
+				// 轉換到台灣時區 (UTC+8)
+				taiwanLocation, _ := time.LoadLocation("Asia/Taipei")
+				taiwanTime := t.In(taiwanLocation)
+				return taiwanTime.Format("2006-01-02")
+			}
+		}
+
+		// 如果都解析失敗，返回原始字串
+		return v
+
+	case float64:
+		// 如果是數字，可能是 Excel 的日期序列號
+		// Excel 的日期從 1900-01-01 開始計算
+		if v == 0 {
+			return ""
+		}
+
+		// 將 Excel 日期序列號轉換為時間
+		excelEpoch := time.Date(1899, 12, 30, 0, 0, 0, 0, time.UTC)
+		days := int(v)
+		date := excelEpoch.AddDate(0, 0, days)
+
+		// 轉換到台灣時區
+		taiwanLocation, _ := time.LoadLocation("Asia/Taipei")
+		taiwanTime := date.In(taiwanLocation)
+		return taiwanTime.Format("2006-01-02")
+
+	default:
+		return ""
+	}
 }
 
 func callGetApi(sheet string) (*apiGetResponse, error) {

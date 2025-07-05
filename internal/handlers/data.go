@@ -60,6 +60,21 @@ func (h *Handler) HandleGetProducts(c *gin.Context) {
 	})
 }
 
+func (h *Handler) HandleGetCustomers(c *gin.Context) {
+	// 呼叫 Google Sheet API 獲取客戶資料
+	customers, err := google_sheet.GetCustomers()
+	if err != nil {
+		log.Printf("獲取客戶資料失敗: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get customers"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Customers retrieved successfully",
+		"data":    customers,
+	})
+}
+
 // HandleCustomerRegister 處理客戶註冊請求
 func (h *Handler) HandleCustomerRegister(c *gin.Context) {
 	customer := models.Customer{}
