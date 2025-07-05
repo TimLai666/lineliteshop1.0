@@ -20,14 +20,36 @@ type apiGetResponse struct {
 }
 
 func GetCategoryByName(name string) (*models.Category, error) {
-	categories, err := GetCategories()
+	// 呼叫 Google Sheet API 來獲取商品分類資料
+	apiResponse, err := callGetApi("CATEGORIES")
 	if err != nil {
 		return nil, err
 	}
-	for _, category := range categories {
-		if category.Name == name {
-			return &category, nil
+
+	if apiResponse.Data == nil {
+		return nil, errors.New("not found")
+	}
+
+	var category *models.Category
+	asyncutil.ParallelForEach(apiResponse.Data, func(_, item any) {
+		itemMap, ok := item.(map[string]any)
+		if !ok {
+			return
 		}
+
+		cat, err := parseCategory(itemMap)
+		if err != nil {
+			return
+		}
+
+		if cat.Name == name {
+			category = cat // 找到匹配的分類，將其設置為結果
+			return         // 找到後可以提前退出
+		}
+	})
+
+	if category != nil {
+		return category, nil
 	}
 	return nil, errors.New("category not found")
 }
@@ -232,21 +254,6 @@ func GetCustomerByID(id string) (*models.Customer, error) {
 			return       // 找到後可以提前退出
 		}
 	})
-	// for _, item := range apiResponse.Data {
-	// 	itemMap, ok := item.(map[string]any)
-	// 	if !ok {
-	// 		return nil, errors.New("invalid item format in customer data")
-	// 	}
-
-	// 	customer, err := parseCustomer(itemMap)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	if customer.ID == id {
-	// 		return customer, nil
-	// 	}
-	// }
 
 	if customer != nil {
 		return customer, nil
