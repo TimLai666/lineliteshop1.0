@@ -15,7 +15,6 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 	{
 		// LINE Bot webhook 回調端點
 		apiGroup.POST("/callback", handler.HandleWebhook)
-		apiGroup.POST("/customer-register", handler.HandleCustomerRegister)
 
 		// Rich Menu 控制端點 - 簡單的切換功能
 		apiGroup.POST("/richmenu/switch/:userId/:richMenuId", handler.SwitchUserRichMenu) // 切換使用者的 Rich Menu
