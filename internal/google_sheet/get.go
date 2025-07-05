@@ -264,7 +264,7 @@ func parseCustomer(itemMap map[string]any) (*models.Customer, error) {
 
 	birthday := ""
 	if birthdayVal, exists := itemMap["birthday"]; exists {
-		birthday = parseBirthday(birthdayVal)
+		birthday = parseDate(birthdayVal)
 	}
 
 	return &models.Customer{
@@ -277,8 +277,8 @@ func parseCustomer(itemMap map[string]any) (*models.Customer, error) {
 }
 
 // parseBirthday 解析生日欄位，處理時區轉換問題
-func parseBirthday(birthdayVal any) string {
-	switch v := birthdayVal.(type) {
+func parseDate(dateVal any) string {
+	switch v := dateVal.(type) {
 	case string:
 		// 如果已經是字串格式，直接返回
 		if v == "" {
