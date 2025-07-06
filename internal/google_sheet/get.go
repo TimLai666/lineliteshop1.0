@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/HazelnutParadise/Go-Utils/asyncutil"
 	"lineliteshop1.0/internal/config"
 	"lineliteshop1.0/internal/models"
 )
@@ -30,27 +29,22 @@ func GetCategoryByName(name string) (*models.Category, error) {
 		return nil, errors.New("not found")
 	}
 
-	var category *models.Category
-	asyncutil.ParallelForEach(apiResponse.Data, func(_, item any) {
+	for _, item := range apiResponse.Data {
 		itemMap, ok := item.(map[string]any)
 		if !ok {
-			return
+			return nil, errors.New("invalid item format in category data")
 		}
 
 		cat, err := parseCategory(itemMap)
 		if err != nil {
-			return
+			return nil, err
 		}
 
 		if cat.Name == name {
-			category = cat // 找到匹配的分類，將其設置為結果
-			return         // 找到後可以提前退出
+			return cat, nil // 找到後直接返回
 		}
-	})
-
-	if category != nil {
-		return category, nil
 	}
+
 	return nil, errors.New("category not found")
 }
 
@@ -237,27 +231,22 @@ func GetCustomerByID(id string) (*models.Customer, error) {
 		return nil, nil
 	}
 
-	var customer *models.Customer
-	asyncutil.ParallelForEach(apiResponse.Data, func(_, item any) {
+	for _, item := range apiResponse.Data {
 		itemMap, ok := item.(map[string]any)
 		if !ok {
-			return
+			return nil, errors.New("invalid item format in customer data")
 		}
 
 		c, err := parseCustomer(itemMap)
 		if err != nil {
-			return
+			return nil, err
 		}
 
 		if c.ID == id {
-			customer = c // 找到匹配的客戶，將其設置為結果
-			return       // 找到後可以提前退出
+			return c, nil // 找到後直接返回
 		}
-	})
-
-	if customer != nil {
-		return customer, nil
 	}
+
 	return nil, errors.New("customer not found")
 }
 
@@ -332,6 +321,36 @@ func parseCustomer(itemMap map[string]any) (*models.Customer, error) {
 		Phone:    phone,
 		Birthday: birthday,
 	}, nil
+}
+
+func GetOrderByID(id uint) (*models.Order, error) {
+	// 呼叫 Google Sheet API 來獲取訂單資料
+	apiResponse, err := callGetApi("ORDERS")
+	if err != nil {
+		return nil, err
+	}
+
+	if apiResponse.Data == nil {
+		return nil, nil
+	}
+
+	for _, item := range apiResponse.Data {
+		itemMap, ok := item.(map[string]any)
+		if !ok {
+			return nil, errors.New("invalid item format in order data")
+		}
+
+		o, err := parseOrder(itemMap)
+		if err != nil {
+			return nil, err
+		}
+
+		if o.ID == id {
+			return o, nil // 找到後直接返回
+		}
+	}
+
+	return nil, errors.New("order not found")
 }
 
 func GetOrders() ([]models.Order, error) {
