@@ -148,6 +148,20 @@ func (h *Handler) HandleUpdateCustomer(c *gin.Context) {
 	})
 }
 
+func (h *Handler) HandleGetOrders(c *gin.Context) {
+	orders, err := google_sheet.GetOrders()
+	if err != nil {
+		log.Printf("獲取訂單資料失敗: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get orders"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Orders retrieved successfully",
+		"data":    orders,
+	})
+}
+
 func (h *Handler) HandlePostOrder(c *gin.Context) {
 	order := models.Order{}
 	if err := c.ShouldBindJSON(&order); err != nil {
