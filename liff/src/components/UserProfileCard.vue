@@ -36,29 +36,29 @@ defineProps({
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    border: 4px solid #00c851;
+    border: 4px solid var(--primary-100);
     object-fit: cover;
 }
 
 .user-info h3 {
-    color: #333;
+    color: var(--text-100);
     margin: 16px 0 8px;
     font-size: 20px;
 }
 
 .uid {
     font-family: monospace;
-    background: #f5f5f5;
+    background: var(--bg-100);
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 12px;
-    color: #666;
+    color: var(--text-200);
     margin: 8px 0;
     word-break: break-all;
 }
 
 .status {
-    color: #888;
+    color: var(--text-200);
     font-size: 14px;
     margin-bottom: 24px;
 }

@@ -63,9 +63,9 @@ const getIcon = () => {
 }
 
 .message-alert.success {
-    background: #d4edda;
-    color: #155724;
-    border-color: #c3e6cb;
+    background: var(--primary-300);
+    color: var(--text-100);
+    border-color: var(--primary-100);
 }
 
 .message-alert.error {
@@ -75,14 +75,14 @@ const getIcon = () => {
 }
 
 .message-alert.warning {
-    background: #fff3cd;
-    color: #856404;
-    border-color: #ffeaa7;
+    background: var(--primary-300);
+    color: var(--text-100);
+    border-color: var(--primary-200);
 }
 
 .message-alert.info {
-    background: #d1ecf1;
-    color: #0c5460;
-    border-color: #bee5eb;
+    background: var(--bg-100);
+    color: var(--text-100);
+    border-color: var(--accent-100);
 }
 </style>

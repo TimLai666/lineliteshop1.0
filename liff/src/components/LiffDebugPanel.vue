@@ -176,8 +176,8 @@ onMounted(async () => {
 
 <style scoped>
 .debug-panel {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
+    background: var(--bg-100);
+    border: 1px solid var(--bg-200);
     border-radius: 8px;
     padding: 20px;
     margin: 20px;
@@ -188,7 +188,7 @@ onMounted(async () => {
 
 .debug-panel h3 {
     margin: 0 0 20px 0;
-    color: #495057;
+    color: var(--text-100);
     font-family: sans-serif;
 }
 
@@ -197,12 +197,12 @@ onMounted(async () => {
     padding: 15px;
     background: white;
     border-radius: 6px;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--bg-200);
 }
 
 .debug-section h4 {
     margin: 0 0 10px 0;
-    color: #6c757d;
+    color: var(--text-200);
     font-size: 16px;
     font-family: sans-serif;
 }
@@ -215,11 +215,11 @@ onMounted(async () => {
 
 .debug-item strong {
     min-width: 120px;
-    color: #495057;
+    color: var(--text-100);
 }
 
 .status-success {
-    color: #28a745;
+    color: var(--primary-100);
     font-weight: bold;
 }
 
@@ -229,7 +229,7 @@ onMounted(async () => {
 }
 
 .status-pending {
-    color: #ffc107;
+    color: var(--primary-300);
     font-weight: bold;
 }
 
@@ -246,8 +246,8 @@ onMounted(async () => {
 
 .debug-btn {
     padding: 8px 16px;
-    border: 1px solid #007bff;
-    background: #007bff;
+    border: 1px solid var(--accent-100);
+    background: var(--accent-100);
     color: white;
     border-radius: 4px;
     cursor: pointer;
@@ -255,12 +255,12 @@ onMounted(async () => {
 }
 
 .debug-btn:hover:not(:disabled) {
-    background: #0056b3;
+    background: var(--accent-200);
 }
 
 .debug-btn:disabled {
-    background: #6c757d;
-    border-color: #6c757d;
+    background: var(--bg-300);
+    border-color: var(--bg-300);
     cursor: not-allowed;
 }
 

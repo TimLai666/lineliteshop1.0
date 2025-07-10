@@ -237,7 +237,7 @@ const handleRegister = async () => {
 <style scoped>
 .register-container {
     min-height: 100vh;
-    background: linear-gradient(135deg, #00c851 0%, #00a537 100%);
+    background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-200) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -256,7 +256,7 @@ const handleRegister = async () => {
 
 .register-card h2 {
     text-align: center;
-    color: #333;
+    color: var(--text-100);
     margin-bottom: 24px;
     font-size: 24px;
     font-weight: 600;
@@ -265,7 +265,7 @@ const handleRegister = async () => {
 .loading {
     text-align: center;
     padding: 40px 20px;
-    color: #666;
+    color: var(--text-200);
 }
 
 .profile-info {
@@ -273,8 +273,8 @@ const handleRegister = async () => {
 }
 
 .info-notice {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
+    background: var(--bg-100);
+    border: 1px solid var(--bg-200);
     border-radius: 8px;
     padding: 16px;
     margin: 20px 0;
@@ -283,12 +283,12 @@ const handleRegister = async () => {
 
 .info-notice p {
     margin: 0 0 8px 0;
-    color: #495057;
+    color: var(--text-100);
     font-weight: 500;
 }
 
 .info-notice small {
-    color: #6c757d;
+    color: var(--text-200);
     font-size: 13px;
 }
 
@@ -300,29 +300,29 @@ const handleRegister = async () => {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    border: 4px solid #00c851;
+    border: 4px solid var(--primary-100);
     object-fit: cover;
 }
 
 .user-info h3 {
-    color: #333;
+    color: var(--text-100);
     margin: 16px 0 8px;
     font-size: 20px;
 }
 
 .uid {
     font-family: monospace;
-    background: #f5f5f5;
+    background: var(--bg-100);
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 12px;
-    color: #666;
+    color: var(--text-200);
     margin: 8px 0;
     word-break: break-all;
 }
 
 .status {
-    color: #888;
+    color: var(--text-200);
     font-size: 14px;
     margin-bottom: 24px;
 }
@@ -340,7 +340,7 @@ const handleRegister = async () => {
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
-    color: #333;
+    color: var(--text-100);
 }
 
 .required {
@@ -352,22 +352,24 @@ const handleRegister = async () => {
 .form-group textarea {
     width: 100%;
     padding: 12px 16px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--bg-200);
     border-radius: 8px;
     font-size: 16px;
     transition: border-color 0.3s;
     box-sizing: border-box;
+    background-color: white;
+    color: var(--text-100);
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #00c851;
+    border-color: var(--primary-100);
 }
 
 .register-btn {
     width: 100%;
-    background: #00c851;
+    background: var(--primary-100);
     color: white;
     border: none;
     padding: 16px;
@@ -379,11 +381,11 @@ const handleRegister = async () => {
 }
 
 .register-btn:hover:not(:disabled) {
-    background: #00a537;
+    background: var(--primary-200);
 }
 
 .register-btn:disabled {
-    background: #ccc;
+    background: var(--bg-300);
     cursor: not-allowed;
 }
 
