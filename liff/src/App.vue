@@ -1,9 +1,9 @@
 <script setup>
-import UserRegister from './views/UserRegister.vue'
+// 移除直接導入 UserRegister，改用路由管理
 </script>
 
 <template>
-  <UserRegister />
+  <router-view />
 </template>
 
 <style>

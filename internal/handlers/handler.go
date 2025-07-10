@@ -72,7 +72,8 @@ func (h *Handler) ServeLIFF(c *gin.Context) {
 
 	// 如果沒有指定文件路徑，默認提供 index.html
 	if filePath == "" || filePath == "/" {
-		filePath = "index.html"
+		c.File("liff/dist/index.html")
+		return
 	}
 
 	// 構建完整的文件路徑
@@ -83,6 +84,18 @@ func (h *Handler) ServeLIFF(c *gin.Context) {
 		// 如果文件不存在，返回 index.html (SPA 路由支持)
 		c.File("liff/dist/index.html")
 		return
+	}
+
+	// 根據文件副檔名設定正確的 MIME 類型
+	switch filepath.Ext(filePath) {
+	case ".js":
+		c.Header("Content-Type", "application/javascript")
+	case ".css":
+		c.Header("Content-Type", "text/css")
+	case ".html":
+		c.Header("Content-Type", "text/html")
+	case ".svg":
+		c.Header("Content-Type", "image/svg+xml")
 	}
 
 	// 提供靜態文件

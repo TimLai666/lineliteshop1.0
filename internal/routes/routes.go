@@ -11,6 +11,9 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 	// 健康檢查端點
 	r.GET("/", handler.HealthCheck)
 
+	// 測試頁面
+	r.StaticFile("/test", "./test-page.html")
+
 	apiGroup := r.Group("/api")
 	{
 		// LINE Bot webhook 回調端點
@@ -44,8 +47,8 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 
 	// LIFF 前端應用服務
 	// 提供靜態文件服務，支援 SPA 路由
-	r.Static("/assets", "./liff/dist/assets")         // 靜態資源（CSS, JS等）
-	r.StaticFile("/vite.svg", "./liff/dist/vite.svg") // Vite 圖標
-	r.GET("/liff", handler.ServeLIFF)                 // LIFF 應用首頁
-	r.GET("/liff/*filepath", handler.ServeLIFF)       // LIFF 應用的所有路由
+	r.Static("/liff/assets", "./liff/dist/assets")         // 靜態資源（CSS, JS等）
+	r.StaticFile("/liff/vite.svg", "./liff/dist/vite.svg") // Vite 圖標
+	r.GET("/liff", handler.ServeLIFF)                      // LIFF 應用首頁
+	r.NoRoute(handler.ServeLIFF)                           // 處理所有未匹配的路由，用於 SPA 路由
 }
