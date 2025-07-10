@@ -28,7 +28,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     // 設定頁面標題
     if (to.meta.title) {
-        document.title += '|' + to.meta.title
+        document.title += " | " + to.meta.title
     }
 
     console.log('導航到:', to.path)
