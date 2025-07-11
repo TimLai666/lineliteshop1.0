@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import UserRegister from '../views/UserRegister.vue'
+import OrderFood from '../views/OrderFood.vue'
 
 const routes = [
     {
         path: '/',
         redirect: () => {
-            // 重定向到註冊頁面
-            return { name: 'UserRegister' }
+            // 重定向到點餐頁面
+            return { name: 'OrderFood' }
         }
     },
     {
@@ -15,6 +16,14 @@ const routes = [
         component: UserRegister,
         meta: {
             title: '用戶註冊'
+        }
+    },
+    {
+        path: '/order',
+        name: 'OrderFood',
+        component: OrderFood,
+        meta: {
+            title: '線上點餐'
         }
     }
 ]
