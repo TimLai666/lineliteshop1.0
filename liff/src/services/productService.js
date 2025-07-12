@@ -1,46 +1,12 @@
-// 基礎 API URL 設定
-const BASE_URL = '/api/data'
-
-// 通用 fetch 函數
-const fetchApi = async (url, options = {}) => {
-    const config = {
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        },
-        ...options
-    }
-
-    try {
-        const response = await fetch(`${BASE_URL}${url}`, config)
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        // 檢查回應的內容類型
-        const contentType = response.headers.get('content-type')
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text()
-            console.error('Expected JSON but received:', text.substring(0, 200))
-            throw new Error('伺服器回傳了非JSON格式的資料')
-        }
-
-        return await response.json()
-    } catch (error) {
-        console.error('Fetch API error:', error)
-        console.error('Request URL:', `${BASE_URL}${url}`)
-        throw error
-    }
-}
+import { apiService } from './api.js'
 
 // 商品相關 API
 export const productApi = {
     // 獲取所有商品
     async getAllProducts() {
         try {
-            console.log('正在呼叫 API:', `${BASE_URL}/products`)
-            const response = await fetchApi('/products')
+            console.log('正在呼叫 API: /api/data/products')
+            const response = await apiService.get('data/products')
             console.log('API 回應:', response)
 
             // 處理後端回傳的 {data: [...]} 格式
@@ -60,13 +26,13 @@ export const productApi = {
     async getProductByName(productName) {
         try {
             // 注意：這個端點可能需要調整，因為後端沒有對應的路由
-            const response = await fetchApi(`/product/${productName}`)
+            const response = await apiService.get(`data/product/${productName}`)
             return response
         } catch (error) {
             console.error('獲取商品詳情失敗:', error)
             throw new Error('無法載入商品詳情')
         }
-    },    // 搜尋商品
+    },
 
     // 獲取分類商品
     // todo: 增加分類功能 - 後端尚未實作此端點

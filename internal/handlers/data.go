@@ -86,6 +86,11 @@ func (h *Handler) HandleGetCustomer(c *gin.Context) {
 	// 呼叫 Google Sheet API 獲取特定客戶資料
 	customer, err := google_sheet.GetCustomerByID(customerID)
 	if err != nil {
+		// 檢查是否是 "customer not found" 錯誤
+		if err.Error() == "customer not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Customer not found"})
+			return
+		}
 		log.Printf("獲取客戶 %s 資料失敗: %v", customerID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get customer"})
 		return

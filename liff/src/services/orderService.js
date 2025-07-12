@@ -1,11 +1,11 @@
-// import { apiService } from './api.js'
+import { apiService } from './api.js'
 
 // 訂單相關 API
 export const orderApi = {
     // 建立訂單
     async createOrder(orderData) {
         try {
-            const response = await apiService.post('', {
+            const response = await apiService.post('data/orders', {
                 action: 'createOrder',
                 ...orderData
             })
@@ -19,7 +19,7 @@ export const orderApi = {
     // 獲取用戶訂單列表
     async getUserOrders(lineUserId) {
         try {
-            const response = await apiService.get('', {
+            const response = await apiService.get('data/orders', {
                 action: 'getUserOrders',
                 lineUserId
             })
@@ -33,7 +33,7 @@ export const orderApi = {
     // 獲取訂單詳情
     async getOrderById(orderId) {
         try {
-            const response = await apiService.get('', {
+            const response = await apiService.get(`data/orders/${orderId}`, {
                 action: 'getOrder',
                 id: orderId
             })
@@ -47,7 +47,7 @@ export const orderApi = {
     // 更新訂單狀態
     async updateOrderStatus(orderId, status) {
         try {
-            const response = await apiService.post('', {
+            const response = await apiService.put(`data/orders/${orderId}`, {
                 action: 'updateOrderStatus',
                 orderId,
                 status
@@ -62,7 +62,7 @@ export const orderApi = {
     // 取消訂單
     async cancelOrder(orderId, reason) {
         try {
-            const response = await apiService.post('', {
+            const response = await apiService.put(`data/orders/${orderId}/cancel`, {
                 action: 'cancelOrder',
                 orderId,
                 reason

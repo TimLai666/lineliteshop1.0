@@ -7,6 +7,15 @@
 
             <LoadingSpinner v-else-if="!profile" message="正在獲取用戶資訊..." />
 
+            <LoadingSpinner v-else-if="isCheckingUser" message="正在檢查用戶狀態..." />
+
+            <div v-else-if="userExists" class="user-exists">
+                <div class="icon">✅</div>
+                <h3>您已經是我們的會員了！</h3>
+                <p>檢測到您已經註冊過，將為您關閉註冊頁面</p>
+                <button @click="closeLiff" class="close-btn">關閉頁面</button>
+            </div>
+
             <div v-else class="profile-info">
                 <UserProfileCard :profile="profile" />
 
@@ -61,6 +70,8 @@ const isLiffReady = ref(false)
 const profile = ref(null)
 const isRegistering = ref(false)
 const registerResult = ref(null)
+const isCheckingUser = ref(false)
+const userExists = ref(false)
 
 const registerData = ref({
     phone: '',
@@ -68,6 +79,52 @@ const registerData = ref({
     birthday: '',
     address: ''
 })
+
+// 檢查用戶是否已存在
+const checkUserExists = async (userId) => {
+    isCheckingUser.value = true
+    try {
+        console.log('正在檢查用戶是否已存在:', userId)
+        const response = await userApi.checkUserExists(userId)
+
+        if (response && response.status === 'success' && response.data) {
+            console.log('用戶已存在:', response.data)
+            userExists.value = true
+            return true
+        } else {
+            console.log('用戶不存在，可以繼續註冊')
+            userExists.value = false
+            return false
+        }
+    } catch (error) {
+        console.log('用戶不存在或檢查失敗:', error)
+        userExists.value = false
+        return false
+    } finally {
+        isCheckingUser.value = false
+    }
+}
+
+// 關閉 LIFF
+const closeLiff = () => {
+    try {
+        if (isDev()) {
+            console.log('開發模式：模擬關閉 LIFF')
+            // 在開發模式下，可以重定向到其他頁面或顯示消息
+            alert('開發模式：模擬關閉 LIFF 頁面')
+            return
+        }
+
+        // 生產模式：真正關閉 LIFF
+        liff.closeWindow()
+    } catch (error) {
+        console.error('關閉 LIFF 失敗:', error)
+        // 如果關閉失敗，嘗試重定向到 LINE 聊天室
+        if (typeof window !== 'undefined') {
+            window.close()
+        }
+    }
+}
 
 // 初始化 LIFF
 onMounted(async () => {
@@ -108,6 +165,9 @@ onMounted(async () => {
             // 設定 profile 資料
             profile.value = mockProfile
 
+            // 檢查用戶是否已存在
+            await checkUserExists(mockProfile.userId)
+
             return // 在 Mock 模式下直接返回，不執行真實的 LIFF 初始化
         }
 
@@ -138,6 +198,9 @@ onMounted(async () => {
                 profile.value = userProfile
                 console.log('用戶資料:', userProfile)
                 console.log('用戶 UID:', userProfile.userId)
+
+                // 檢查用戶是否已存在
+                await checkUserExists(userProfile.userId)
             } catch (profileError) {
                 console.error('獲取用戶資料失敗:', profileError)
                 registerResult.value = {
@@ -387,6 +450,45 @@ const handleRegister = async () => {
 .register-btn:disabled {
     background: var(--bg-300);
     cursor: not-allowed;
+}
+
+.user-exists {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.user-exists .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.user-exists h3 {
+    color: var(--text-100);
+    margin: 16px 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.user-exists p {
+    color: var(--text-200);
+    margin: 16px 0 24px;
+    line-height: 1.5;
+}
+
+.close-btn {
+    background: var(--primary-100);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.close-btn:hover {
+    background: var(--primary-200);
 }
 
 @media (max-width: 600px) {

@@ -228,7 +228,7 @@ func GetCustomerByID(id string) (*models.Customer, error) {
 	}
 
 	if apiResponse.Data == nil {
-		return nil, nil
+		return nil, errors.New("customer not found")
 	}
 
 	for _, item := range apiResponse.Data {
