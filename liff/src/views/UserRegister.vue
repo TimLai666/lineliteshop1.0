@@ -3,7 +3,14 @@
         <div class="register-card">
             <h2>用戶註冊</h2>
 
-            <LoadingSpinner v-if="!isLiffReady" message="正在初始化 LINE 服務..." />
+            <LoadingSpinner v-if="!isReady" message="等待 LINE 服務初始化..." />
+
+            <div v-else-if="!isLoggedIn" class="login-required">
+                <div class="icon">🔐</div>
+                <h3>需要登入 LINE</h3>
+                <p>請先登入您的 LINE 帳號以繼續註冊</p>
+                <button @click="handleLogin" class="login-btn">登入 LINE</button>
+            </div>
 
             <LoadingSpinner v-else-if="!profile" message="正在獲取用戶資訊..." />
 
@@ -56,18 +63,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { liff } from '@line/liff'
-// import { LiffMockPlugin } from '@line/liff-mock' // 暫時不使用，改用自定義 Mock
+import { ref, onMounted, watch } from 'vue'
 import UserProfileCard from '../components/UserProfileCard.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import MessageAlert from '../components/MessageAlert.vue'
 import LiffDebugPanel from '../components/LiffDebugPanel.vue'
 import { userApi, handleApiError } from '../services/index.js'
-import { isDev, getLiffId } from '../config'
+import { useLiff } from '../composables/useLiff.js'
 
-const isLiffReady = ref(false)
-const profile = ref(null)
+// 使用全局 LIFF 狀態
+const {
+    isReady,
+    isLoggedIn,
+    profile,
+    closeLiff,
+    loginLiff
+} = useLiff()
+
+// 組件狀態
 const isRegistering = ref(false)
 const registerResult = ref(null)
 const isCheckingUser = ref(false)
@@ -105,136 +118,32 @@ const checkUserExists = async (userId) => {
     }
 }
 
-// 關閉 LIFF
-const closeLiff = () => {
-    try {
-        if (isDev()) {
-            console.log('開發模式：模擬關閉 LIFF')
-            // 在開發模式下，可以重定向到其他頁面或顯示消息
-            alert('開發模式：模擬關閉 LIFF 頁面')
-            return
-        }
+// 監聽 profile 變化，當獲取到用戶資料時檢查是否已存在
+watch(profile, async (newProfile) => {
+    if (newProfile && newProfile.userId) {
+        await checkUserExists(newProfile.userId)
+    }
+}, { immediate: true })
 
-        // 生產模式：真正關閉 LIFF
-        liff.closeWindow()
-    } catch (error) {
-        console.error('關閉 LIFF 失敗:', error)
-        // 如果關閉失敗，嘗試重定向到 LINE 聊天室
-        if (typeof window !== 'undefined') {
-            window.close()
-        }
+// 處理登入
+const handleLogin = () => {
+    if (!isLoggedIn.value) {
+        loginLiff()
     }
 }
 
-// 初始化 LIFF
-onMounted(async () => {
-    try {
-        // 在開發環境中使用自定義 Mock
-        if (isDev()) {
-            console.log('🚀 開發模式：啟用自定義 LIFF Mock 功能')
+// 組件掛載時的處理
+onMounted(() => {
+    console.log('UserRegister 組件已掛載')
+    console.log('LIFF 狀態:', {
+        isReady: isReady.value,
+        isLoggedIn: isLoggedIn.value,
+        hasProfile: !!profile.value
+    })
 
-            // 模擬 LIFF 初始化成功
-            console.log('✅ LIFF Mock 初始化成功!')
-            console.log('🔧 Mock 模式: 啟用')
-            isLiffReady.value = true
-
-            // 模擬獲取上下文
-            const mockContext = {
-                type: 'utou',
-                userId: 'U1234567890abcdef',
-                utouId: 'U1234567890'
-            }
-            console.log('LIFF Context (Mock):', mockContext)
-
-            // 模擬登入狀態為 true
-            const mockIsLoggedIn = true
-            console.log('登入狀態 (Mock):', mockIsLoggedIn)
-
-            // 直接設定模擬的用戶資料
-            const mockProfile = {
-                userId: 'U1234567890abcdef',
-                displayName: '測試用戶 🎭',
-                pictureUrl: 'https://profile.line-scdn.net/0hWTtohNNVMGBREDyBFMFBbHF1MQg1CDkBfAQqBSsVFAozVSgELgMpGHgBEVoyVigILgQtHSsBFFk8',
-                statusMessage: '這是 Mock 測試用戶帳號'
-            }
-
-            console.log('用戶已登入 (Mock)，正在獲取用戶資料...')
-            console.log('用戶資料 (Mock):', mockProfile)
-            console.log('用戶 UID (Mock):', mockProfile.userId)
-
-            // 設定 profile 資料
-            profile.value = mockProfile
-
-            // 檢查用戶是否已存在
-            await checkUserExists(mockProfile.userId)
-
-            return // 在 Mock 模式下直接返回，不執行真實的 LIFF 初始化
-        }
-
-        // 生產環境：使用真實 LIFF
-        console.log('🌍 生產模式：使用真實 LIFF 環境')
-
-        await liff.init({
-            liffId: getLiffId()
-        })
-
-        console.log('✅ LIFF 初始化成功!')
-        console.log('🔧 Mock 模式:', isDev() ? '啟用' : '停用')
-        isLiffReady.value = true
-
-        // 獲取 LIFF 上下文資訊
-        const context = liff.getContext()
-        console.log('LIFF Context:', context)
-
-        // 檢查用戶是否已登入
-        const isLoggedIn = liff.isLoggedIn()
-        console.log('登入狀態:', isLoggedIn)
-
-        if (isLoggedIn) {
-            console.log('用戶已登入，正在獲取用戶資料...')
-            try {
-                // 獲取用戶資料
-                const userProfile = await liff.getProfile()
-                profile.value = userProfile
-                console.log('用戶資料:', userProfile)
-                console.log('用戶 UID:', userProfile.userId)
-
-                // 檢查用戶是否已存在
-                await checkUserExists(userProfile.userId)
-            } catch (profileError) {
-                console.error('獲取用戶資料失敗:', profileError)
-                registerResult.value = {
-                    type: 'error',
-                    message: '獲取用戶資料失敗，請確認 LIFF 設定中的 scope 權限'
-                }
-            }
-        } else {
-            console.log('用戶未登入，準備導向登入頁面...')
-            // 如果未登入，導向登入頁面
-            liff.login()
-        }
-    } catch (error) {
-        console.error('LIFF 初始化失敗:', error)
-        console.error('錯誤詳情:', {
-            code: error.code,
-            message: error.message,
-            cause: error.cause
-        })
-
-        let errorMessage = 'LINE 服務初始化失敗'
-
-        if (error.code === 'INVALID_CONFIG') {
-            errorMessage = 'LIFF ID 不正確，請檢查設定'
-        } else if (error.code === 'UNAUTHORIZED') {
-            errorMessage = '未授權存取，請檢查 LIFF 應用程式設定'
-        } else if (error.code === 'FORBIDDEN') {
-            errorMessage = '權限不足，請檢查 LIFF 應用程式的 scope 設定'
-        }
-
-        registerResult.value = {
-            type: 'error',
-            message: errorMessage + '，請重新整理頁面'
-        }
+    // 如果已經有 profile，立即檢查用戶狀態
+    if (profile.value && profile.value.userId) {
+        checkUserExists(profile.value.userId)
     }
 })
 
@@ -488,6 +397,45 @@ const handleRegister = async () => {
 }
 
 .close-btn:hover {
+    background: var(--primary-200);
+}
+
+.login-required {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.login-required .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.login-required h3 {
+    color: var(--text-100);
+    margin: 16px 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.login-required p {
+    color: var(--text-200);
+    margin: 16px 0 24px;
+    line-height: 1.5;
+}
+
+.login-btn {
+    background: var(--primary-100);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.login-btn:hover {
     background: var(--primary-200);
 }
 

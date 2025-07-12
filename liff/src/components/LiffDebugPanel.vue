@@ -33,28 +33,44 @@
             </div>
         </div>
 
-        <div v-if="context" class="debug-section">
+        <div v-if="liffContext" class="debug-section">
             <h4>LIFF 上下文</h4>
             <div class="debug-item">
-                <strong>類型:</strong> {{ context.type }}
+                <strong>類型:</strong> {{ liffContext.type }}
             </div>
             <div class="debug-item">
-                <strong>用戶 ID:</strong> {{ context.userId || '無' }}
+                <strong>用戶 ID:</strong> {{ liffContext.userId || '無' }}
             </div>
             <div class="debug-item">
-                <strong>視圖類型:</strong> {{ context.viewType || '無' }}
+                <strong>視圖類型:</strong> {{ liffContext.viewType || '無' }}
             </div>
             <div class="debug-item">
-                <strong>權限範圍:</strong> {{ context.scope?.join(', ') || '無' }}
+                <strong>權限範圍:</strong> {{ liffContext.scope?.join(', ') || '無' }}
             </div>
         </div>
 
-        <div v-if="error" class="debug-section error-section">
-            <h4>❌ 錯誤資訊</h4>
+        <div v-if="profile" class="debug-section">
+            <h4>用戶資料</h4>
             <div class="debug-item">
-                <strong>錯誤代碼:</strong> {{ error.code }}
+                <strong>用戶 ID:</strong> {{ profile.userId }}
             </div>
             <div class="debug-item">
+                <strong>顯示名稱:</strong> {{ profile.displayName }}
+            </div>
+            <div class="debug-item">
+                <strong>狀態訊息:</strong> {{ profile.statusMessage || '無' }}
+            </div>
+        </div>
+
+        <div v-if="liffError || error" class="debug-section error-section">
+            <h4>❌ 錯誤資訊</h4>
+            <div v-if="liffError" class="debug-item">
+                <strong>LIFF 錯誤:</strong> {{ liffError }}
+            </div>
+            <div v-if="error" class="debug-item">
+                <strong>錯誤代碼:</strong> {{ error.code }}
+            </div>
+            <div v-if="error" class="debug-item">
                 <strong>錯誤訊息:</strong> {{ error.message }}
             </div>
         </div>
@@ -73,33 +89,42 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { liff } from '@line/liff'
-import { getLiffId } from '../config'
+import { useLiff } from '../composables/useLiff.js'
+import { isDev } from '../config'
+
+// 使用全局 LIFF 狀態
+const {
+    isReady,
+    isLoggedIn,
+    profile,
+    context: liffContext,
+    error: liffError,
+    loginLiff,
+    isInClient
+} = useLiff()
 
 const debugInfo = ref({
     isInClient: false,
     os: '',
     version: '',
     currentUrl: '',
-    liffId: getLiffId()
+    liffId: ''
 })
 
-const isLiffReady = ref(false)
-const isLoggedIn = ref(false)
-const context = ref(null)
 const error = ref(null)
 
 const initStatus = computed(() => {
-    if (error.value) {
+    if (liffError.value) {
         return { text: '初始化失敗', class: 'status-error' }
     }
-    if (isLiffReady.value) {
+    if (isReady.value) {
         return { text: '初始化成功', class: 'status-success' }
     }
     return { text: '初始化中...', class: 'status-pending' }
 })
 
 const loginStatus = computed(() => {
-    if (!isLiffReady.value) {
+    if (!isReady.value) {
         return { text: '等待初始化', class: 'status-pending' }
     }
     if (isLoggedIn.value) {
@@ -109,26 +134,29 @@ const loginStatus = computed(() => {
 })
 
 const canTestLogin = computed(() => {
-    return isLiffReady.value && !isLoggedIn.value && !debugInfo.value.isInClient
+    return isReady.value && !isLoggedIn.value
 })
 
 const refreshDebugInfo = async () => {
     try {
-        // 基本環境資訊
-        debugInfo.value = {
-            isInClient: liff.isInClient(),
-            os: liff.getOS(),
-            version: liff.getVersion(),
-            currentUrl: window.location.href,
-            liffId: debugInfo.value.liffId
-        }
-
-        if (isLiffReady.value) {
-            // LIFF 上下文
-            context.value = liff.getContext()
-
-            // 登入狀態
-            isLoggedIn.value = liff.isLoggedIn()
+        if (isDev()) {
+            // 開發模式的模擬資訊
+            debugInfo.value = {
+                isInClient: true,
+                os: 'mock',
+                version: 'mock-2.0.0',
+                currentUrl: window.location.href,
+                liffId: 'mock-liff-id'
+            }
+        } else {
+            // 生產模式的真實資訊
+            debugInfo.value = {
+                isInClient: isInClient(),
+                os: isReady.value ? liff.getOS() : 'unknown',
+                version: isReady.value ? liff.getVersion() : 'unknown',
+                currentUrl: window.location.href,
+                liffId: isReady.value ? liff._config?.liffId : 'unknown'
+            }
         }
     } catch (err) {
         console.error('刷新調試資訊失敗:', err)
@@ -137,7 +165,7 @@ const refreshDebugInfo = async () => {
 
 const testLogin = () => {
     try {
-        liff.login()
+        loginLiff()
     } catch (err) {
         console.error('測試登入失敗:', err)
         error.value = {
@@ -148,29 +176,8 @@ const testLogin = () => {
 }
 
 onMounted(async () => {
-    // 初始化基本資訊
+    // 初始化調試資訊
     await refreshDebugInfo()
-
-    try {
-        console.log('🚀 開始 LIFF 初始化...')
-
-        await liff.init({
-            liffId: debugInfo.value.liffId
-        })
-
-        console.log('✅ LIFF 初始化成功')
-        isLiffReady.value = true
-
-        // 刷新所有資訊
-        await refreshDebugInfo()
-
-    } catch (err) {
-        console.error('❌ LIFF 初始化失敗:', err)
-        error.value = {
-            code: err.code || 'UNKNOWN',
-            message: err.message || '未知錯誤'
-        }
-    }
 })
 </script>
 
