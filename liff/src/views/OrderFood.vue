@@ -38,7 +38,17 @@
                 <p>😔 沒有找到商品</p>
             </div>
             <div v-else class="products-grid">
-                <div v-for="product in filteredProducts" :key="product.name" class="product-card">
+                <div v-for="product in filteredProducts" :key="product.name" :class="['product-card', {
+                    'out-of-stock': product.stock === 0 && product.status === '暫時無法供貨',
+                    'sold-out': product.stock === 0 && (!product.status || product.status === '已售完')
+                }]">
+
+                    <!-- 狀態標記 -->
+                    <div v-if="product.stock === 0 || product.status === '暫時無法供貨'" class="status-badge">
+                        <span v-if="product.status === '暫時無法供貨'" class="badge-unavailable">⚠️ 暫時無法供貨</span>
+                        <span v-else-if="product.stock === 0" class="badge-sold-out">❌ 已售完</span>
+                    </div>
+
                     <div class="product-image">
                         <span class="product-emoji">🍽️</span>
                     </div>
@@ -46,9 +56,13 @@
                         <h3 class="product-name">{{ product.name }}</h3>
                         <p class="product-description">{{ product.description || '美味佳餚' }}</p>
                         <div class="product-meta">
-                            <span class="product-category">{{ product.category }}</span>
-                            <span class="product-stock" :class="{ 'low-stock': product.stock < 5 }">
-                                庫存: {{ product.stock }}
+                            <span class="product-category">{{ product.category || '其他' }}</span>
+                            <span class="product-stock"
+                                :class="{ 'low-stock': product.stock < 5 && product.stock > 0 }">
+                                <span v-if="product.stock === 0 && product.status === '暫時無法供貨'"
+                                    class="stock-unavailable">暫時缺貨</span>
+                                <span v-else-if="product.stock === 0" class="stock-sold-out">已售完</span>
+                                <span v-else>庫存: {{ product.stock }}</span>
                             </span>
                         </div>
                         <div class="product-footer">
@@ -87,11 +101,16 @@
                             <div class="cart-item-info">
                                 <h4>{{ item.product.name }}</h4>
                                 <p class="cart-item-price">NT$ {{ item.product.price }} × {{ item.quantity }}</p>
+                                <p v-if="item.product.stock === 0 && item.product.status === '暫時無法供貨'"
+                                    class="cart-item-status unavailable">⚠️ 暫時無法供貨</p>
+                                <p v-else-if="item.product.stock === 0" class="cart-item-status sold-out">❌ 已售完</p>
+                                <p v-else-if="item.product.stock < 5" class="cart-item-status low-stock">⚠️ 庫存不足</p>
                             </div>
                             <div class="cart-item-controls">
                                 <button @click="decreaseQuantity(item.product)">-</button>
                                 <span>{{ item.quantity }}</span>
-                                <button @click="increaseQuantity(item.product)">+</button>
+                                <button @click="increaseQuantity(item.product)"
+                                    :disabled="item.product.stock === 0 || item.quantity >= item.product.stock">+</button>
                                 <button @click="removeFromCart(item.product)" class="remove-btn">🗑️</button>
                             </div>
                         </div>
@@ -198,7 +217,12 @@ const orderInfo = ref({
 // 分類選項
 const categories = computed(() => {
     const cats = ['全部']
-    const productCats = [...new Set(products.value.map(p => p.category))]
+    const productCats = [...new Set(products.value.map(p => p.category).filter(cat => cat && cat.trim()))]
+    // 如果有無分類的商品，添加"其他"分類
+    const hasUncategorized = products.value.some(p => !p.category || !p.category.trim())
+    if (hasUncategorized) {
+        productCats.push('其他')
+    }
     return cats.concat(productCats)
 })
 
@@ -208,7 +232,12 @@ const filteredProducts = computed(() => {
 
     // 按分類篩選
     if (selectedCategory.value !== '全部') {
-        filtered = filtered.filter(p => p.category === selectedCategory.value)
+        if (selectedCategory.value === '其他') {
+            // 顯示沒有分類或分類為空的商品
+            filtered = filtered.filter(p => !p.category || !p.category.trim())
+        } else {
+            filtered = filtered.filter(p => p.category === selectedCategory.value)
+        }
     }
 
     // 按搜尋關鍵字篩選
@@ -217,12 +246,12 @@ const filteredProducts = computed(() => {
         filtered = filtered.filter(p =>
             p.name.toLowerCase().includes(keyword) ||
             p.description?.toLowerCase().includes(keyword) ||
-            p.category.toLowerCase().includes(keyword)
+            (p.category && p.category.toLowerCase().includes(keyword))
         )
     }
 
-    // 只顯示有庫存的商品
-    return filtered.filter(p => p.stock > 0)
+    // 只顯示未下架的商品（包括暫時無法供貨的商品）
+    return filtered.filter(p => p.status !== '下架')
 })
 
 // 購物車相關計算屬性
@@ -240,10 +269,18 @@ const cartTotal = computed(() => {
 const loadProducts = async () => {
     try {
         loading.value = true
+        console.log('開始載入商品...')
         const response = await productApi.getAllProducts()
+        console.log('API 回應商品:', response)
 
-        // 模擬商品資料 (如果 API 沒有回傳資料)
-        if (!response || response.length === 0) {
+        // 檢查是否有回傳有效的商品資料
+        if (response && Array.isArray(response) && response.length > 0) {
+            console.log('使用 API 商品資料:', response.length, '個商品')
+            // 過濾掉下架的商品，顯示有現貨或暫時無法供貨的商品
+            products.value = response.filter(p => p.status !== '下架')
+        } else {
+            console.log('API 沒有回傳商品資料，使用模擬資料')
+            // 模擬商品資料 (如果 API 沒有回傳資料)
             products.value = [
                 {
                     name: '經典漢堡',
@@ -310,8 +347,6 @@ const loadProducts = async () => {
                     status: 'available'
                 }
             ]
-        } else {
-            products.value = response.filter(p => p.status === 'available')
         }
     } catch (error) {
         console.error('載入商品失敗:', error)
@@ -614,11 +649,56 @@ onMounted(() => {
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
 }
 
-.product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+/* 商品狀態相關樣式 */
+.product-card.out-of-stock {
+    opacity: 0.8;
+    background: #f8f9fa;
+}
+
+.product-card.sold-out {
+    opacity: 0.7;
+    background: #f5f5f5;
+}
+
+.status-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+}
+
+.badge-unavailable,
+.badge-sold-out {
+    display: inline-block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.badge-unavailable {
+    background: #ff9800;
+    border: 2px solid #f57c00;
+}
+
+.badge-sold-out {
+    background: #f44336;
+    border: 2px solid #d32f2f;
+}
+
+.stock-unavailable {
+    color: #ff9800;
+    font-weight: 600;
+}
+
+.stock-sold-out {
+    color: #f44336;
+    font-weight: 600;
 }
 
 .product-image {
@@ -670,8 +750,12 @@ onMounted(() => {
 }
 
 .product-stock.low-stock {
-    color: var(--primary-100);
+    color: #ff9800;
     font-weight: 600;
+    background: rgba(255, 152, 0, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 152, 0, 0.3);
 }
 
 .product-footer {
@@ -1053,5 +1137,23 @@ onMounted(() => {
     .title {
         font-size: 1.3rem;
     }
+}
+
+.cart-item-status {
+    font-size: 0.8rem;
+    margin: 0.2rem 0 0 0;
+    font-weight: 600;
+}
+
+.cart-item-status.unavailable {
+    color: #ff9800;
+}
+
+.cart-item-status.sold-out {
+    color: #f44336;
+}
+
+.cart-item-status.low-stock {
+    color: #ff9800;
 }
 </style>
