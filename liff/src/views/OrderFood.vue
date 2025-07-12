@@ -644,23 +644,32 @@ onMounted(() => {
 }
 
 .product-card {
-    background: white;
+    background: linear-gradient(135deg, #ffffff, #fafafa);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s, box-shadow 0.3s;
     position: relative;
+    border: 1px solid var(--bg-200);
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-200);
 }
 
 /* 商品狀態相關樣式 */
 .product-card.out-of-stock {
-    opacity: 0.8;
-    background: #f8f9fa;
+    opacity: 0.85;
+    background: linear-gradient(135deg, rgba(3, 169, 244, 0.05), rgba(3, 169, 244, 0.1));
+    border: 1px solid rgba(3, 169, 244, 0.2);
 }
 
 .product-card.sold-out {
-    opacity: 0.7;
-    background: #f5f5f5;
+    opacity: 0.8;
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.08), rgba(255, 152, 0, 0.12));
+    border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
 .status-badge {
@@ -682,35 +691,51 @@ onMounted(() => {
 }
 
 .badge-unavailable {
-    background: #ff9800;
-    border: 2px solid #f57c00;
+    background: var(--accent-100);
+    border: 2px solid var(--accent-200);
 }
 
 .badge-sold-out {
-    background: #f44336;
-    border: 2px solid #d32f2f;
+    background: #ffc107;
+    border: 2px solid #ff9800;
+    color: #333;
 }
 
 .stock-unavailable {
-    color: #ff9800;
+    color: var(--accent-100);
     font-weight: 600;
 }
 
 .stock-sold-out {
-    color: #f44336;
+    color: #ff9800;
     font-weight: 600;
 }
 
 .product-image {
     height: 120px;
-    background: linear-gradient(135deg, var(--primary-300), var(--primary-200));
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.product-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
 }
 
 .product-emoji {
     font-size: 3rem;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .product-info {
@@ -750,12 +775,12 @@ onMounted(() => {
 }
 
 .product-stock.low-stock {
-    color: #ff9800;
+    color: var(--accent-100);
     font-weight: 600;
-    background: rgba(255, 152, 0, 0.1);
+    background: rgba(3, 169, 244, 0.1);
     padding: 0.2rem 0.4rem;
     border-radius: 8px;
-    border: 1px solid rgba(255, 152, 0, 0.3);
+    border: 1px solid rgba(3, 169, 244, 0.3);
 }
 
 .product-footer {
@@ -1146,14 +1171,14 @@ onMounted(() => {
 }
 
 .cart-item-status.unavailable {
-    color: #ff9800;
+    color: var(--accent-100);
 }
 
 .cart-item-status.sold-out {
-    color: #f44336;
+    color: #ff9800;
 }
 
 .cart-item-status.low-stock {
-    color: #ff9800;
+    color: var(--accent-200);
 }
 </style>
