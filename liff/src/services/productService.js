@@ -67,25 +67,6 @@ export const productApi = {
             throw new Error('無法載入商品詳情')
         }
     },    // 搜尋商品
-    // todo: 增加搜尋功能 - 後端尚未實作此端點
-    async searchProducts(keyword) {
-        try {
-            // 暫時通過獲取所有商品然後在前端過濾
-            const allProducts = await productApi.getAllProducts()
-
-            if (!allProducts || !Array.isArray(allProducts)) {
-                return []
-            }
-
-            return allProducts.filter(product =>
-                product.name?.toLowerCase().includes(keyword.toLowerCase()) ||
-                product.description?.toLowerCase().includes(keyword.toLowerCase())
-            )
-        } catch (error) {
-            console.error('搜尋商品失敗:', error)
-            throw new Error('搜尋失敗，請稍後再試')
-        }
-    },
 
     // 獲取分類商品
     // todo: 增加分類功能 - 後端尚未實作此端點

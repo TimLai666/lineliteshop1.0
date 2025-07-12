@@ -378,10 +378,6 @@ const selectCategory = (category) => {
     selectedCategory.value = category
 }
 
-const handleSearch = () => {
-    // 搜尋功能已通過 computed 屬性實現
-}
-
 const getProductQuantity = (product) => {
     const item = cartItems.value.find(item => item.product.name === product.name)
     return item ? item.quantity : 0
