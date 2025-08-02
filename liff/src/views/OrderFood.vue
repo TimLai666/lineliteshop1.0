@@ -176,7 +176,7 @@
                 </div>
 
                 <div class="checkout-footer">
-                    <button class="cancel-btn" @click="showCheckout = false">取消</button>
+                    <button class="cancel-btn" @click="showCheckout = false" :disabled="submitting">取消</button>
                     <button class="confirm-btn" @click="submitOrder" :disabled="submitting">
                         {{ submitting ? '處理中...' : '確認訂單' }}
                     </button>
@@ -1191,6 +1191,12 @@ onMounted(async () => {
 
 .cancel-btn:hover {
     background: var(--bg-300);
+}
+
+.cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--bg-200);
 }
 
 .confirm-btn {

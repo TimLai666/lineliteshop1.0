@@ -54,12 +54,13 @@ func generateShortID() uint {
 	return ticketNumber
 }
 
-func AddOrder(order models.Order) error {
+func AddOrder(order models.Order) (uint, error) {
 	// 產生基於時間戳的簡短ID
-	order.ID = generateShortID()
+	orderId := generateShortID()
+	order.ID = orderId
 
 	// 呼叫 Google Sheet API 來新增訂單資料
-	return callPostApi("ADD_ORDER", order)
+	return orderId, callPostApi("ADD_ORDER", order)
 }
 
 func UpdateOrder(order models.Order) error {

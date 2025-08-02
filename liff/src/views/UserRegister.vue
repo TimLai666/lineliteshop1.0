@@ -107,7 +107,7 @@ const checkUserExists = async (userId) => {
             console.log('用戶已存在:', userData)
             userExists.value = true
 
-            // 用戶已存在，2秒後自動跳轉到點餐頁面
+            // 用戶已存在，500毫秒後自動跳轉到點餐頁面
             setTimeout(async () => {
                 console.log('用戶已存在，開始跳轉到點餐頁面...')
                 try {
@@ -123,7 +123,7 @@ const checkUserExists = async (userId) => {
                         console.error('直接路徑跳轉也失敗:', secondError)
                     }
                 }
-            }, 2000)
+            }, 500)
 
             return true
         } else {
@@ -219,7 +219,7 @@ const handleRegister = async () => {
             address: ''
         }
 
-        // 註冊成功後，2秒後跳轉到點餐頁面
+        // 註冊成功後，500毫秒後跳轉到點餐頁面
         setTimeout(async () => {
             console.log('開始跳轉到點餐頁面...')
             try {
@@ -235,7 +235,7 @@ const handleRegister = async () => {
                     console.error('直接路徑跳轉也失敗:', secondError)
                 }
             }
-        }, 2000)
+        }, 500)
 
 
 
