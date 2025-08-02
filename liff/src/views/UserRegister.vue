@@ -19,8 +19,7 @@
             <div v-else-if="userExists" class="user-exists">
                 <div class="icon">✅</div>
                 <h3>您已經是我們的會員了！</h3>
-                <p>檢測到您已經註冊過，將為您關閉註冊頁面</p>
-                <button @click="closeLiff" class="close-btn">關閉頁面</button>
+                <p>檢測到您已經註冊過，正在為您跳轉到點餐頁面...</p>
             </div>
 
             <div v-else class="profile-info">
@@ -107,6 +106,25 @@ const checkUserExists = async (userId) => {
         if (userData) {
             console.log('用戶已存在:', userData)
             userExists.value = true
+
+            // 用戶已存在，2秒後自動跳轉到點餐頁面
+            setTimeout(async () => {
+                console.log('用戶已存在，開始跳轉到點餐頁面...')
+                try {
+                    await router.push({ name: 'OrderFood' })
+                    console.log('跳轉成功')
+                } catch (error) {
+                    console.error('跳轉失敗:', error)
+                    // 如果跳轉失敗，嘗試直接跳轉到 /order
+                    try {
+                        await router.push('/order')
+                        console.log('直接路徑跳轉成功')
+                    } catch (secondError) {
+                        console.error('直接路徑跳轉也失敗:', secondError)
+                    }
+                }
+            }, 2000)
+
             return true
         } else {
             console.log('用戶不存在，可以繼續註冊')
@@ -185,6 +203,9 @@ const handleRegister = async () => {
 
         console.log('註冊成功:', response)
 
+        // 標記用戶已註冊，避免路由守衛攔截
+        userExists.value = true
+
         registerResult.value = {
             type: 'success',
             message: '註冊成功！正在為您跳轉到點餐頁面...'
@@ -199,8 +220,21 @@ const handleRegister = async () => {
         }
 
         // 註冊成功後，2秒後跳轉到點餐頁面
-        setTimeout(() => {
-            router.push({ name: 'OrderFood' })
+        setTimeout(async () => {
+            console.log('開始跳轉到點餐頁面...')
+            try {
+                await router.push({ name: 'OrderFood' })
+                console.log('跳轉成功')
+            } catch (error) {
+                console.error('跳轉失敗:', error)
+                // 如果跳轉失敗，可能是路由守衛攔截，嘗試直接跳轉到 /order
+                try {
+                    await router.push('/order')
+                    console.log('直接路徑跳轉成功')
+                } catch (secondError) {
+                    console.error('直接路徑跳轉也失敗:', secondError)
+                }
+            }
         }, 2000)
 
 
