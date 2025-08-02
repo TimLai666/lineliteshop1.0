@@ -1,6 +1,5 @@
 services:
   app:
-    build:
-      image: lineliteshop:latest
+    image: lineliteshop:latest
     network_mode: host
     restart: unless-stopped
