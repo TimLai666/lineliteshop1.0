@@ -124,7 +124,11 @@
                 </div>
 
                 <div class="cart-footer" v-if="cartItems.length > 0">
-                    <button class="checkout-btn" @click="proceedToCheckout">
+                    <div v-if="!isUserLoggedInAndReady()" class="login-warning">
+                        <p>⚠️ 請先登入 LINE 帳號才能下訂單</p>
+                        <button class="login-btn" @click="initializeLiff">重新登入</button>
+                    </div>
+                    <button v-else class="checkout-btn" @click="proceedToCheckout">
                         送出訂單 (NT$ {{ cartTotal }})
                     </button>
                 </div>
@@ -140,6 +144,17 @@
                 </div>
 
                 <div class="checkout-content">
+                    <div class="user-info" v-if="profile">
+                        <h3>訂購人資訊</h3>
+                        <div class="user-card">
+                            <img v-if="profile.pictureUrl" :src="profile.pictureUrl" alt="用戶頭像" class="user-avatar">
+                            <div class="user-details">
+                                <p class="user-name">{{ profile.displayName }}</p>
+                                <p class="user-id">用戶ID: {{ profile.userId }}</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="order-summary">
                         <h3>訂單明細</h3>
                         <div v-for="item in cartItems" :key="item.product.name" class="order-item">
@@ -188,6 +203,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- 錯誤提示 -->
+        <div v-if="showError" class="error-overlay" @click="showError = false">
+            <div class="error-modal" @click.stop>
+                <div class="error-content">
+                    <div class="error-icon">❌</div>
+                    <h2>發生錯誤</h2>
+                    <p>{{ errorMessage }}</p>
+                    <button class="error-btn" @click="showError = false">確定</button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -195,6 +222,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { productApi } from '../services/productService.js'
 import { orderApi } from '../services/orderService.js'
+import { useLiff } from '../composables/useLiff.js'
 
 // 響應式資料
 const loading = ref(true)
@@ -207,6 +235,19 @@ const showCheckout = ref(false)
 const showSuccess = ref(false)
 const submitting = ref(false)
 const orderNumber = ref('')
+const errorMessage = ref('')
+const showError = ref(false)
+
+// 初始化 LIFF
+const {
+    initializeLiff,
+    profile,
+    isLoggedIn,
+    isReady,
+    getUserId,
+    hasValidProfile,
+    isUserLoggedInAndReady
+} = useLiff()
 
 // 訂單資訊
 const orderInfo = ref({
@@ -417,6 +458,32 @@ const removeFromCart = (product) => {
 }
 
 const proceedToCheckout = () => {
+    // 檢查用戶是否已登入
+    if (!isUserLoggedInAndReady()) {
+        errorMessage.value = '請先登入 LINE 帳號才能下訂單'
+        showError.value = true
+        return
+    }
+
+    // 檢查購物車是否有商品
+    if (cartItems.value.length === 0) {
+        errorMessage.value = '購物車是空的，請先加入商品'
+        showError.value = true
+        return
+    }
+
+    // 檢查商品庫存狀態
+    const outOfStockItems = cartItems.value.filter(item =>
+        item.product.stock === 0 || item.product.status === '暫時無法供貨'
+    )
+
+    if (outOfStockItems.length > 0) {
+        const itemNames = outOfStockItems.map(item => item.product.name).join(', ')
+        errorMessage.value = `以下商品目前無法供應，請移除後再下訂單：${itemNames}`
+        showError.value = true
+        return
+    }
+
     showCart.value = false
     showCheckout.value = true
 }
@@ -425,23 +492,41 @@ const submitOrder = async () => {
     try {
         submitting.value = true
 
-        const orderData = {
-            items: cartItems.value.map(item => ({
-                productName: item.product.name,
-                quantity: item.quantity,
-                price: item.product.price
-            })),
-            total: cartTotal.value,
-            pickupMethod: orderInfo.value.pickupMethod,
-            notes: orderInfo.value.notes,
-            orderTime: new Date().toISOString()
+        // 檢查用戶是否已登入 LIFF
+        if (!isUserLoggedInAndReady()) {
+            throw new Error('請先登入 LINE 帳號')
         }
 
-        // 嘗試提交訂單
-        const response = await orderApi.createOrder(orderData)
+        const userId = getUserId()
+        const userProfile = profile.value
 
-        // 生成訂單編號 (模擬)
-        orderNumber.value = `ORD${Date.now().toString().slice(-6)}`
+        if (!userId || !userProfile) {
+            throw new Error('無法取得用戶資訊')
+        }
+
+        // 準備訂單資料，符合後端 Order 模型
+        const orderData = {
+            customer_id: userId,
+            customer_name: userProfile.displayName || '未知用戶',
+            products: cartItems.value.map(item => ({
+                product: item.product.name,
+                quantity: item.quantity
+            })),
+            status: 'pending',
+            time: new Date().toISOString(),
+            total_amount: cartTotal.value,
+            customer_note: orderInfo.value.notes || '',
+            internal_note: `取餐方式: ${orderInfo.value.pickupMethod === 'store' ? '店內取餐' : '外送'}`
+        }
+
+        console.log('準備提交訂單:', orderData)
+
+        // 提交訂單到後端
+        const response = await orderApi.createOrder(orderData)
+        console.log('訂單提交成功:', response)
+
+        // todo: 未來可加訂單編號
+        // orderNumber.value = response.order_id || `ORD${Date.now().toString().slice(-6)}`
 
         // 顯示成功畫面
         showCheckout.value = false
@@ -449,10 +534,19 @@ const submitOrder = async () => {
 
     } catch (error) {
         console.error('提交訂單失敗:', error)
-        // 即使 API 失敗也顯示成功 (Demo 用途)
-        orderNumber.value = `ORD${Date.now().toString().slice(-6)}`
-        showCheckout.value = false
-        showSuccess.value = true
+
+        // 顯示錯誤訊息給用戶
+        errorMessage.value = error.message || '訂單提交失敗，請稍後再試'
+        showError.value = true
+
+        // 如果是因為用戶未登入，可以嘗試重新初始化 LIFF
+        if (error.message.includes('登入')) {
+            try {
+                await initializeLiff()
+            } catch (liffError) {
+                console.error('重新初始化 LIFF 失敗:', liffError)
+            }
+        }
     } finally {
         submitting.value = false
     }
@@ -469,7 +563,16 @@ const resetOrder = () => {
 }
 
 // 生命週期
-onMounted(() => {
+onMounted(async () => {
+    // 初始化 LIFF
+    try {
+        await initializeLiff()
+        console.log('LIFF 初始化成功')
+    } catch (error) {
+        console.error('LIFF 初始化失敗:', error)
+    }
+
+    // 載入商品資料
     loadProducts()
 })
 </script>
@@ -837,7 +940,8 @@ onMounted(() => {
 /* 彈窗樣式 */
 .cart-overlay,
 .checkout-overlay,
-.success-overlay {
+.success-overlay,
+.error-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -853,7 +957,8 @@ onMounted(() => {
 
 .cart-modal,
 .checkout-modal,
-.success-modal {
+.success-modal,
+.error-modal {
     background: white;
     border-radius: 16px;
     max-width: 500px;
@@ -1113,27 +1218,36 @@ onMounted(() => {
 }
 
 /* 成功彈窗 */
-.success-content {
+.success-content,
+.error-content {
     padding: 3rem 2rem;
     text-align: center;
 }
 
-.success-icon {
+.success-icon,
+.error-icon {
     font-size: 4rem;
     margin-bottom: 1rem;
 }
 
-.success-content h2 {
+.success-content h2,
+.error-content h2 {
     color: var(--primary-100);
     margin: 0 0 1rem 0;
 }
 
-.success-content p {
+.error-content h2 {
+    color: #f44336;
+}
+
+.success-content p,
+.error-content p {
     color: var(--text-200);
     margin: 0.5rem 0;
 }
 
-.success-btn {
+.success-btn,
+.error-btn {
     margin-top: 2rem;
     padding: 1rem 2rem;
     background: var(--primary-100);
@@ -1146,8 +1260,16 @@ onMounted(() => {
     transition: background-color 0.3s;
 }
 
+.error-btn {
+    background: #f44336;
+}
+
 .success-btn:hover {
     background: var(--primary-200);
+}
+
+.error-btn:hover {
+    background: #d32f2f;
 }
 
 /* 響應式設計 */
@@ -1191,5 +1313,82 @@ onMounted(() => {
 
 .cart-item-status.low-stock {
     color: var(--accent-200);
+}
+
+/* 登入警告 */
+.login-warning {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.login-warning p {
+    margin: 0 0 0.5rem 0;
+    color: #ff9800;
+    font-weight: 600;
+}
+
+.login-btn {
+    padding: 0.5rem 1rem;
+    background: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.login-btn:hover {
+    background: #f57c00;
+}
+
+/* 用戶資訊 */
+.user-info {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--bg-200);
+}
+
+.user-info h3 {
+    margin: 0 0 1rem 0;
+    color: var(--text-100);
+}
+
+.user-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-100);
+    border-radius: 8px;
+    border: 1px solid var(--bg-200);
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-100);
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-name {
+    margin: 0 0 0.3rem 0;
+    font-weight: 600;
+    color: var(--text-100);
+}
+
+.user-id {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-200);
 }
 </style>

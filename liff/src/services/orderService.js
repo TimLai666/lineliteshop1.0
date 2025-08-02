@@ -5,13 +5,13 @@ export const orderApi = {
     // 建立訂單
     async createOrder(orderData) {
         try {
-            const response = await apiService.post('data/order', {
-                ...orderData
-            })
+            console.log('正在發送訂單到後端:', orderData)
+            const response = await apiService.post('data/order', orderData)
+            console.log('後端回應:', response)
             return response
         } catch (error) {
             console.error('建立訂單失敗:', error)
-            throw new Error('訂單建立失敗，請稍後再試')
+            throw new Error(`訂單建立失敗: ${error.message}`)
         }
     },
 

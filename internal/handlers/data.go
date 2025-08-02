@@ -213,6 +213,8 @@ func (h *Handler) HandlePostOrder(c *gin.Context) {
 		return
 	}
 
+	log.Printf("準備新增訂單: %+v", order)
+
 	// 呼叫 Google Sheet API 新增訂單資料
 	err := google_sheet.AddOrder(order)
 	if err != nil {
@@ -220,6 +222,9 @@ func (h *Handler) HandlePostOrder(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add order"})
 		return
 	}
+
+	log.Printf("訂單新增成功")
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
 		"message": "Order added successfully",
