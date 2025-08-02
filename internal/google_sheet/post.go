@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"lineliteshop1.0/internal/config"
 	"lineliteshop1.0/internal/models"
@@ -33,7 +35,29 @@ func UpdateCustomer(customer models.Customer) error {
 	return callPostApi("UPDATE_CUSTOMER", customer)
 }
 
+// generateShortID 產生適合取餐號碼的簡短不重複ID
+func generateShortID() uint {
+	// 使用當天的日期作為基礎，確保每天重新開始編號
+	now := time.Now()
+	dayOfYear := uint(now.YearDay()) // 一年中的第幾天 (1-366)
+	hour := uint(now.Hour())         // 當前小時 (0-23)
+
+	// 組合日期和小時，創建每小時重置的基礎編號
+	baseID := (dayOfYear%100)*100 + hour // 例如：第365天20點 = 6520
+
+	// 加上隨機數確保同一小時內的唯一性（使用新的隨機數產生方式）
+	randomPart := uint(rand.Intn(100)) // 2位隨機數 (00-99)
+
+	// 組合成4-6位的取餐號碼
+	ticketNumber := baseID*100 + randomPart
+
+	return ticketNumber
+}
+
 func AddOrder(order models.Order) error {
+	// 產生基於時間戳的簡短ID
+	order.ID = generateShortID()
+
 	// 呼叫 Google Sheet API 來新增訂單資料
 	return callPostApi("ADD_ORDER", order)
 }

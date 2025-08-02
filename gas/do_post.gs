@@ -234,7 +234,7 @@ function addOrder(data) {
       }
     }
   }
-  const newOrderId = maxId + 1;
+  const newOrderId = data.order.id || maxId + 1;
 
   // 在第二行插入新訂單（第一行是標題行）
   sheet.insertRowAfter(1);
