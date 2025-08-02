@@ -64,12 +64,16 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import UserProfileCard from '../components/UserProfileCard.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import MessageAlert from '../components/MessageAlert.vue'
 import LiffDebugPanel from '../components/LiffDebugPanel.vue'
 import { userApi, handleApiError } from '../services/index.js'
 import { useLiff } from '../composables/useLiff.js'
+
+// 路由
+const router = useRouter()
 
 // 使用全局 LIFF 狀態
 const {
@@ -183,7 +187,7 @@ const handleRegister = async () => {
 
         registerResult.value = {
             type: 'success',
-            message: '註冊成功！歡迎加入我們的服務'
+            message: '註冊成功！正在為您跳轉到點餐頁面...'
         }
 
         // 重置表單
@@ -193,6 +197,13 @@ const handleRegister = async () => {
             birthday: '',
             address: ''
         }
+
+        // 註冊成功後，2秒後跳轉到點餐頁面
+        setTimeout(() => {
+            router.push({ name: 'OrderFood' })
+        }, 2000)
+
+
 
     } catch (error) {
         console.error('Registration failed:', error)
