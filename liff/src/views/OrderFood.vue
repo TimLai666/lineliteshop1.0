@@ -516,8 +516,7 @@ const submitOrder = async () => {
         const response = await orderApi.createOrder(orderData)
         console.log('訂單提交成功:', response)
 
-        // todo: 未來可加訂單編號
-        // orderNumber.value = response.order_id || `ORD${Date.now().toString().slice(-6)}`
+        orderNumber.value = response.order_id
 
         // 顯示成功畫面
         showCheckout.value = false
