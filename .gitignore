@@ -2,3 +2,4 @@
 liff/.env
 liff/.env.production
 .env
+*.tar
