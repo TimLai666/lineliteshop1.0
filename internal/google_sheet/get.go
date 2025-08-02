@@ -523,7 +523,11 @@ func parseDateOnly(dateVal any) string {
 		for _, format := range formats {
 			if t, err := time.Parse(format, v); err == nil {
 				// 轉換到台灣時區 (UTC+8)
-				taiwanLocation, _ := time.LoadLocation("Asia/Taipei")
+				taiwanLocation, err := time.LoadLocation("Asia/Taipei")
+				if err != nil {
+					// 如果無法載入台灣時區，使用 UTC+8 固定偏移
+					taiwanLocation = time.FixedZone("CST", 8*60*60) // UTC+8
+				}
 				taiwanTime := t.In(taiwanLocation)
 				return taiwanTime.Format("2006-01-02")
 			}
@@ -545,7 +549,11 @@ func parseDateOnly(dateVal any) string {
 		date := excelEpoch.AddDate(0, 0, days)
 
 		// 轉換到台灣時區
-		taiwanLocation, _ := time.LoadLocation("Asia/Taipei")
+		taiwanLocation, err := time.LoadLocation("Asia/Taipei")
+		if err != nil {
+			// 如果無法載入台灣時區，使用 UTC+8 固定偏移
+			taiwanLocation = time.FixedZone("CST", 8*60*60) // UTC+8
+		}
 		taiwanTime := date.In(taiwanLocation)
 		return taiwanTime.Format("2006-01-02")
 
@@ -578,7 +586,11 @@ func parseDate(dateVal any) string {
 		for _, format := range formats {
 			if t, err := time.Parse(format, v); err == nil {
 				// 轉換到台灣時區 (UTC+8)
-				taiwanLocation, _ := time.LoadLocation("Asia/Taipei")
+				taiwanLocation, err := time.LoadLocation("Asia/Taipei")
+				if err != nil {
+					// 如果無法載入台灣時區，使用 UTC+8 固定偏移
+					taiwanLocation = time.FixedZone("CST", 8*60*60) // UTC+8
+				}
 				taiwanTime := t.In(taiwanLocation)
 
 				// 如果原始格式包含時間，返回完整的日期時間
@@ -622,7 +634,11 @@ func parseDate(dateVal any) string {
 			time.Duration(seconds)*time.Second)
 
 		// 轉換到台灣時區
-		taiwanLocation, _ := time.LoadLocation("Asia/Taipei")
+		taiwanLocation, err := time.LoadLocation("Asia/Taipei")
+		if err != nil {
+			// 如果無法載入台灣時區，使用 UTC+8 固定偏移
+			taiwanLocation = time.FixedZone("CST", 8*60*60) // UTC+8
+		}
 		taiwanTime := dateTime.In(taiwanLocation)
 
 		// 如果有時間部分（小數不為0），返回完整的日期時間
