@@ -41,9 +41,11 @@ func generateShortID() uint {
 	now := time.Now()
 	dayOfYear := uint(now.YearDay()) // 一年中的第幾天 (1-366)
 	hour := uint(now.Hour())         // 當前小時 (0-23)
+	minute := uint(now.Minute())     // 當前分鐘 (0-59)
+	second := uint(now.Second())     // 當前秒 (0-59)
 
 	// 組合日期和小時，創建每小時重置的基礎編號
-	baseID := (dayOfYear%100)*100 + hour // 例如：第365天20點 = 6520
+	baseID := (dayOfYear%100)*100 + hour + minute + second
 
 	// 加上隨機數確保同一小時內的唯一性（使用新的隨機數產生方式）
 	randomPart := uint(rand.Intn(100)) // 2位隨機數 (00-99)
