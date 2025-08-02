@@ -140,7 +140,7 @@
             <div class="checkout-modal" @click.stop>
                 <div class="checkout-header">
                     <h2>📝 確認訂單</h2>
-                    <button class="close-btn" @click="showCheckout = false">✕</button>
+                    <button class="close-btn" @click="showCheckout = false" :disabled="submitting">✕</button>
                 </div>
 
                 <div class="checkout-content">
@@ -990,6 +990,12 @@ onMounted(async () => {
 }
 
 .close-btn:hover {
+    background: var(--bg-200);
+}
+
+.close-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
     background: var(--bg-200);
 }
 
