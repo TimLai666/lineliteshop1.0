@@ -125,7 +125,7 @@
 
                 <div class="cart-footer" v-if="cartItems.length > 0">
                     <button class="checkout-btn" @click="proceedToCheckout">
-                        結帳 (NT$ {{ cartTotal }})
+                        送出訂單 (NT$ {{ cartTotal }})
                     </button>
                 </div>
             </div>
@@ -947,15 +947,30 @@ onMounted(() => {
     min-width: 32px;
     min-height: 32px;
     border-radius: 50%;
-    border: 1px solid var(--bg-200);
+    border: 2px solid var(--primary-100);
     background: white;
+    color: var(--primary-100);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    font-weight: bold;
     padding: 0;
     line-height: 1;
+    transition: all 0.3s;
+}
+
+.cart-item-controls button:hover:not(:disabled) {
+    background: var(--primary-100);
+    color: white;
+}
+
+.cart-item-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: var(--bg-200);
+    color: var(--bg-200);
 }
 
 .remove-btn {
