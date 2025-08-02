@@ -11,9 +11,6 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 	// 健康檢查端點
 	r.GET("/", handler.HealthCheck)
 
-	// 測試頁面
-	r.StaticFile("/test", "./test-page.html")
-
 	apiGroup := r.Group("/api")
 	{
 		// LINE Bot webhook 回調端點
