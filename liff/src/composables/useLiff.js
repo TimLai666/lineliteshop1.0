@@ -200,7 +200,12 @@ export const useLiff = () => {
         loginLiff,
         closeLiff,
         sendMessage,
-        isInClient
+        isInClient,
+
+        // 新增：用戶檢查方法
+        getUserId: () => liffState.profile?.userId,
+        hasValidProfile: () => liffState.profile && liffState.profile.userId,
+        isUserLoggedInAndReady: () => liffState.isReady && liffState.isLoggedIn && liffState.profile
     }
 }
 

@@ -19,29 +19,30 @@ export const userApi = {
         }
     },
 
-    // 檢查用戶是否已註冊 (透過獲取用戶資料來檢查)
-    async checkUserExists(lineUserId) {
-        try {
-            const response = await apiService.get(`data/customer/${lineUserId}`)
-            return response
-        } catch (error) {
-            // 如果是 404 錯誤，表示用戶不存在，這是正常情況
-            if (error.status === 404) {
-                return null
-            }
-            console.error('檢查用戶狀態失敗:', error)
-            throw new Error('無法檢查用戶狀態')
-        }
-    },
-
     // 獲取用戶資料
     async getUserProfile(lineUserId) {
         try {
             const response = await apiService.get(`data/customer/${lineUserId}`)
-            return response
+            return response.data
         } catch (error) {
+            // 如果是 404 錯誤（用戶不存在），返回 null
+            if (error.status === 404) {
+                console.log('用戶不存在:', lineUserId)
+                return null
+            }
             console.error('獲取用戶資料失敗:', error)
-            throw new Error('無法獲取用戶資料')
+            throw error
+        }
+    },
+
+    // 檢查用戶是否存在
+    async checkUserExists(lineUserId) {
+        try {
+            const userData = await this.getUserProfile(lineUserId)
+            return userData !== null
+        } catch (error) {
+            console.error('檢查用戶存在性失敗:', error)
+            return false
         }
     },
 

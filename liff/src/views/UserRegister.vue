@@ -98,10 +98,10 @@ const checkUserExists = async (userId) => {
     isCheckingUser.value = true
     try {
         console.log('正在檢查用戶是否已存在:', userId)
-        const response = await userApi.checkUserExists(userId)
+        const userData = await userApi.getUserProfile(userId)
 
-        if (response && response.status === 'success' && response.data) {
-            console.log('用戶已存在:', response.data)
+        if (userData) {
+            console.log('用戶已存在:', userData)
             userExists.value = true
             return true
         } else {
@@ -110,7 +110,7 @@ const checkUserExists = async (userId) => {
             return false
         }
     } catch (error) {
-        console.log('用戶不存在或檢查失敗:', error)
+        console.log('檢查用戶狀態失敗，用戶可能不存在:', error)
         userExists.value = false
         return false
     } finally {

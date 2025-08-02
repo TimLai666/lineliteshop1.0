@@ -5,8 +5,7 @@ export const orderApi = {
     // 建立訂單
     async createOrder(orderData) {
         try {
-            const response = await apiService.post('data/orders', {
-                action: 'createOrder',
+            const response = await apiService.post('data/order', {
                 ...orderData
             })
             return response
@@ -20,7 +19,6 @@ export const orderApi = {
     async getUserOrders(lineUserId) {
         try {
             const response = await apiService.get('data/orders', {
-                action: 'getUserOrders',
                 lineUserId
             })
             return response
@@ -33,10 +31,7 @@ export const orderApi = {
     // 獲取訂單詳情
     async getOrderById(orderId) {
         try {
-            const response = await apiService.get(`data/orders/${orderId}`, {
-                action: 'getOrder',
-                id: orderId
-            })
+            const response = await apiService.get(`data/order/${orderId}`)
             return response
         } catch (error) {
             console.error('獲取訂單詳情失敗:', error)
@@ -47,8 +42,7 @@ export const orderApi = {
     // 更新訂單狀態
     async updateOrderStatus(orderId, status) {
         try {
-            const response = await apiService.put(`data/orders/${orderId}`, {
-                action: 'updateOrderStatus',
+            const response = await apiService.put(`data/order`, {
                 orderId,
                 status
             })
@@ -62,10 +56,10 @@ export const orderApi = {
     // 取消訂單
     async cancelOrder(orderId, reason) {
         try {
-            const response = await apiService.put(`data/orders/${orderId}/cancel`, {
-                action: 'cancelOrder',
+            const response = await apiService.put(`data/order`, {
                 orderId,
-                reason
+                reason,
+                status: 'cancelled'
             })
             return response
         } catch (error) {

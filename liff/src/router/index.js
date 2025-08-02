@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import UserRegister from '../views/UserRegister.vue'
 import OrderFood from '../views/OrderFood.vue'
+import liff from '@line/liff'
+import { validateUserForNavigation, UserValidator } from '../utils/userValidator.js'
 
 const routes = [
     {
@@ -34,14 +36,39 @@ const router = createRouter({
 })
 
 // 簡化的路由守衛
-router.beforeEach((to, from, next) => {
-    // 設定頁面標題
-    if (to.meta.title) {
-        document.title += " | " + to.meta.title
-    }
+router.beforeEach(async (to, from, next) => {
+    try {
+        console.log('路由守衛: 導航至', to.path, '路由名稱:', to.name)
 
-    console.log('導航到:', to.path)
-    next()
+        // 獲取用戶 ID
+        const user_line_uid = await UserValidator.getUserIdFromLiff(liff)
+        console.log('路由守衛: 用戶 LINE UID:', user_line_uid)
+
+        // 使用驗證工具檢查用戶狀態
+        const validation = await validateUserForNavigation(user_line_uid, to.name)
+
+        if (validation.shouldRedirect) {
+            console.log('路由守衛: 需要重定向到', validation.redirectTo)
+            return next({ name: validation.redirectTo })
+        }
+
+        // 設定頁面標題
+        if (to.meta.title) {
+            document.title = "LineLiteShop | " + to.meta.title
+        }
+
+        console.log('路由守衛: 驗證通過，導航到:', to.path)
+        next()
+
+    } catch (error) {
+        console.error('路由守衛錯誤:', error)
+        // 發生任何錯誤都重定向到註冊頁面
+        if (to.name !== 'UserRegister') {
+            console.log('路由守衛: 發生錯誤，重定向到註冊頁面')
+            return next({ name: 'UserRegister' })
+        }
+        next()
+    }
 })
 
 export default router
