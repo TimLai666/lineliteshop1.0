@@ -167,14 +167,7 @@
                     </div>
 
                     <div class="customer-info">
-                        <h3>取餐資訊</h3>
-                        <div class="form-group">
-                            <label>取餐方式:</label>
-                            <select v-model="orderInfo.pickupMethod">
-                                <option value="store">店內取餐</option>
-                                <option value="delivery">外送</option>
-                            </select>
-                        </div>
+                        <h3>訂單資訊</h3>
                         <div class="form-group">
                             <label>備註:</label>
                             <textarea v-model="orderInfo.notes" placeholder="特殊需求或備註..." rows="3"></textarea>
@@ -251,7 +244,6 @@ const {
 
 // 訂單資訊
 const orderInfo = ref({
-    pickupMethod: 'store',
     notes: ''
 })
 
@@ -516,7 +508,6 @@ const submitOrder = async () => {
             time: new Date().toISOString(),
             total_amount: cartTotal.value,
             customer_note: orderInfo.value.notes || '',
-            internal_note: `取餐方式: ${orderInfo.value.pickupMethod === 'store' ? '店內取餐' : '外送'}`
         }
 
         console.log('準備提交訂單:', orderData)
@@ -555,7 +546,6 @@ const submitOrder = async () => {
 const resetOrder = () => {
     cartItems.value = []
     orderInfo.value = {
-        pickupMethod: 'store',
         notes: ''
     }
     showSuccess.value = false
