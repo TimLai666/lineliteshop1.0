@@ -2,6 +2,10 @@
     <div class="order-food-container">
         <!-- 頂部標題區域 -->
         <header class="header">
+            <button @click="goToOrders" class="orders-btn" title="我的訂單">
+                <span class="orders-icon">📝</span>
+                <span class="orders-text">我的訂單</span>
+            </button>
             <h1 class="title">🍔 線上點餐</h1>
             <div class="cart-summary" @click="showCart = true">
                 <span class="cart-icon">🛒</span>
@@ -213,6 +217,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { productApi } from '../services/productService.js'
 import { orderApi } from '../services/orderService.js'
 import { useLiff } from '../composables/useLiff.js'
@@ -230,6 +235,9 @@ const submitting = ref(false)
 const orderNumber = ref('')
 const errorMessage = ref('')
 const showError = ref(false)
+
+// 路由
+const router = useRouter()
 
 // 初始化 LIFF
 const {
@@ -299,6 +307,11 @@ const cartTotal = computed(() => {
 })
 
 // 方法
+// 跳轉到我的訂單頁面
+const goToOrders = () => {
+    router.push({ name: 'MyOrders' })
+}
+
 const loadProducts = async () => {
     try {
         loading.value = true
@@ -589,6 +602,34 @@ onMounted(async () => {
     font-size: 1.5rem;
     margin: 0;
     font-weight: 600;
+}
+
+.orders-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.orders-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.orders-icon {
+    font-size: 16px;
+}
+
+.orders-text {
+    white-space: nowrap;
 }
 
 .cart-summary {
@@ -1295,6 +1336,20 @@ onMounted(async () => {
 
     .title {
         font-size: 1.3rem;
+    }
+
+    .orders-btn {
+        padding: 6px 8px;
+        font-size: 12px;
+        gap: 4px;
+    }
+
+    .orders-text {
+        display: none;
+    }
+
+    .orders-icon {
+        font-size: 18px;
     }
 }
 

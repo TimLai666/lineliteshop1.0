@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import UserRegister from '../views/UserRegister.vue'
 import OrderFood from '../views/OrderFood.vue'
+import MyOrders from '../views/MyOrders.vue'
 import liff from '@line/liff'
 import { validateUserForNavigation, UserValidator } from '../utils/userValidator.js'
 
@@ -26,6 +27,14 @@ const routes = [
         component: OrderFood,
         meta: {
             title: '線上點餐'
+        }
+    },
+    {
+        path: '/my-orders',
+        name: 'MyOrders',
+        component: MyOrders,
+        meta: {
+            title: '我的訂單'
         }
     }
 ]
