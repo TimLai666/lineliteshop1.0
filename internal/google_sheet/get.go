@@ -371,6 +371,7 @@ func GetOrders() ([]models.Order, error) {
 		if !ok {
 			return nil, errors.New("invalid item format in order data")
 		}
+		fmt.Println("Raw order item:", itemMap) // 調試輸出
 
 		order, err := parseOrder(itemMap)
 		if err != nil {
