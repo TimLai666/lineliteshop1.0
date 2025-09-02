@@ -1,8 +1,5 @@
 services:
   app:
     image: lineliteshop:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
     network_mode: host
     restart: unless-stopped
