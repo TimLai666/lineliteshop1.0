@@ -221,6 +221,36 @@ func parseProduct(itemMap map[string]any) (*models.Product, error) {
 	}, nil
 }
 
+func GetProductByName(name string) (*models.Product, error) {
+	// 呼叫 Google Sheet API 來獲取商品資料
+	apiResponse, err := callGetApi("PRODUCTS")
+	if err != nil {
+		return nil, err
+	}
+
+	if apiResponse.Data == nil {
+		return nil, errors.New("product not found")
+	}
+
+	for _, item := range apiResponse.Data {
+		itemMap, ok := item.(map[string]any)
+		if !ok {
+			return nil, errors.New("invalid item format in product data")
+		}
+
+		product, err := parseProduct(itemMap)
+		if err != nil {
+			return nil, err
+		}
+
+		if product.Name == name {
+			return product, nil // 找到後直接返回
+		}
+	}
+
+	return nil, errors.New("product not found")
+}
+
 func GetCustomerByID(id string) (*models.Customer, error) {
 	// 呼叫 Google Sheet API 來獲取客戶資料
 	apiResponse, err := callGetApi("CUSTOMERS")
@@ -335,23 +365,77 @@ func GetOrderByID(id uint) (*models.Order, error) {
 		return nil, nil
 	}
 
+	// 找到目標訂單並收集商品名稱
+	var targetItemMap map[string]any
+	productNames := make(map[string]bool)
+
 	for _, item := range apiResponse.Data {
 		itemMap, ok := item.(map[string]any)
 		if !ok {
 			return nil, errors.New("invalid item format in order data")
 		}
 
-		o, err := parseOrder(itemMap)
-		if err != nil {
-			return nil, err
+		// 檢查是否是目標訂單
+		var itemID uint
+		switch idVal := itemMap["id"].(type) {
+		case string:
+			uint64Id, err := strconv.ParseUint(idVal, 10, 32)
+			if err != nil {
+				continue
+			}
+			itemID = uint(uint64Id)
+		case float64:
+			itemID = uint(idVal)
+		case int:
+			itemID = uint(idVal)
+		default:
+			continue
 		}
 
-		if o.ID == id {
-			return o, nil // 找到後直接返回
+		if itemID == id {
+			targetItemMap = itemMap
+			// 收集這個訂單的商品名稱
+			if productsVal, exists := itemMap["products"]; exists {
+				if pList, ok := productsVal.([]any); ok {
+					for _, pItem := range pList {
+						if pMap, ok := pItem.(map[string]any); ok {
+							if productName, ok := pMap["product"].(string); ok && productName != "" {
+								productNames[productName] = true
+							}
+						}
+					}
+				}
+			}
+			break
 		}
 	}
 
-	return nil, errors.New("order not found")
+	if targetItemMap == nil {
+		return nil, errors.New("order not found")
+	}
+
+	// 批量查詢商品價格
+	productPrices := make(map[string]int)
+	if len(productNames) > 0 {
+		products, err := GetProducts()
+		if err != nil {
+			fmt.Printf("Warning: Failed to get products data: %v\n", err)
+		} else {
+			for _, product := range products {
+				if _, exists := productNames[product.Name]; exists {
+					productPrices[product.Name] = int(product.Price)
+				}
+			}
+		}
+	}
+
+	// 解析訂單
+	o, err := parseOrderWithPrices(targetItemMap, productPrices)
+	if err != nil {
+		return nil, err
+	}
+
+	return o, nil
 }
 
 func GetOrders() ([]models.Order, error) {
@@ -365,15 +449,56 @@ func GetOrders() ([]models.Order, error) {
 		return nil, nil
 	}
 
-	orders := make([]models.Order, 0, len(apiResponse.Data))
+	// 第一階段：解析所有訂單，收集商品名稱
+	productNames := make(map[string]bool)
+	rawOrders := make([]map[string]any, 0, len(apiResponse.Data))
+
 	for _, item := range apiResponse.Data {
 		itemMap, ok := item.(map[string]any)
 		if !ok {
 			return nil, errors.New("invalid item format in order data")
 		}
+
+		// 收集商品名稱
+		if productsVal, exists := itemMap["products"]; exists {
+			if pList, ok := productsVal.([]any); ok {
+				for _, pItem := range pList {
+					if pMap, ok := pItem.(map[string]any); ok {
+						if productName, ok := pMap["product"].(string); ok && productName != "" {
+							productNames[productName] = true
+						}
+					}
+				}
+			}
+		}
+
+		rawOrders = append(rawOrders, itemMap)
+	}
+
+	// 第二階段：批量查詢商品價格
+	productPrices := make(map[string]int)
+	if len(productNames) > 0 {
+		// 獲取所有商品資料
+		products, err := GetProducts()
+		if err != nil {
+			// 如果獲取商品資料失敗，使用默認價格 0
+			fmt.Printf("Warning: Failed to get products data: %v\n", err)
+		} else {
+			// 創建商品名稱到價格的映射
+			for _, product := range products {
+				if _, exists := productNames[product.Name]; exists {
+					productPrices[product.Name] = int(product.Price)
+				}
+			}
+		}
+	}
+
+	// 第三階段：解析訂單並設置價格
+	orders := make([]models.Order, 0, len(rawOrders))
+	for _, itemMap := range rawOrders {
 		fmt.Println("Raw order item:", itemMap) // 調試輸出
 
-		order, err := parseOrder(itemMap)
+		order, err := parseOrderWithPrices(itemMap, productPrices)
 		if err != nil {
 			return nil, err
 		}
@@ -430,7 +555,7 @@ func parseOrder(itemMap map[string]any) (*models.Order, error) {
 	}
 
 	totalAmount := 0
-	if totalVal, exists := itemMap["total_amount"]; exists {
+	if totalVal, exists := itemMap["totalAmount"]; exists {
 		switch v := totalVal.(type) {
 		case float64:
 			totalAmount = int(v)
@@ -444,11 +569,11 @@ func parseOrder(itemMap map[string]any) (*models.Order, error) {
 				if t, err := strconv.Atoi(v); err == nil {
 					totalAmount = t
 				} else {
-					return nil, errors.New("invalid total_amount format in order data")
+					return nil, errors.New("invalid totalAmount format in order data")
 				}
 			}
 		default:
-			return nil, errors.New("invalid total_amount format in order data")
+			return nil, errors.New("invalid totalAmount format in order data")
 		}
 	}
 
@@ -462,11 +587,187 @@ func parseOrder(itemMap map[string]any) (*models.Order, error) {
 				}
 
 				productName, _ := pMap["product"].(string)
-				quantity, _ := pMap["quantity"].(int)
+
+				// 處理 quantity 的多種格式
+				quantity := 0
+				if qtyVal, exists := pMap["quantity"]; exists {
+					switch qty := qtyVal.(type) {
+					case float64:
+						quantity = int(qty)
+					case int:
+						quantity = qty
+					case string:
+						if qty == "" {
+							quantity = 0
+						} else {
+							if q, err := strconv.Atoi(qty); err == nil {
+								quantity = q
+							}
+						}
+					default:
+						quantity = 0
+					}
+				}
+
+				// 獲取商品價格
+				price := 0
+				if productName != "" {
+					if product, err := GetProductByName(productName); err == nil && product != nil {
+						price = int(product.Price)
+					}
+				}
 
 				products = append(products, models.Item{
 					Product:  productName,
 					Quantity: quantity,
+					Price:    price,
+				})
+			}
+		}
+	}
+
+	orderTime := ""
+	if dateVal, exists := itemMap["time"]; exists {
+		orderTime = parseDate(dateVal)
+	}
+
+	customerNote := ""
+	if noteVal, exists := itemMap["customer_note"]; exists {
+		if note, ok := noteVal.(string); ok {
+			customerNote = note
+		}
+	}
+
+	internalNote := ""
+	if noteVal, exists := itemMap["internal_note"]; exists {
+		if note, ok := noteVal.(string); ok {
+			internalNote = note
+		}
+	}
+
+	return &models.Order{
+		ID:           id,
+		CustomerID:   customerID,
+		CustomerName: customerName,
+		Status:       status,
+		Time:         orderTime,
+		Products:     products,
+		TotalAmount:  totalAmount,
+		CustomerNote: customerNote,
+		InternalNote: internalNote,
+	}, nil
+}
+
+// parseOrderWithPrices 解析單個訂單項目，使用預先查詢的商品價格映射
+func parseOrderWithPrices(itemMap map[string]any, productPrices map[string]int) (*models.Order, error) {
+	// ID 是必填欄位
+	id := uint(0) // 預設 ID 為 0
+	switch idVal := itemMap["id"].(type) {
+	case string:
+		// 如果 ID 是字符串格式，轉換為整數
+		uint64Id, err := strconv.ParseUint(idVal, 10, 32)
+		if err != nil {
+			return nil, errors.New("invalid id format in order data")
+		}
+		id = uint(uint64Id)
+	case float64:
+		// 如果 ID 是浮點數格式，轉換為整數
+		id = uint(idVal)
+	case int:
+		// 如果 ID 是整數格式，直接使用
+		id = uint(idVal)
+	default:
+		return nil, errors.New("invalid id format in order data")
+	}
+	// 其他欄位為選填，如果不存在或格式錯誤則設為空字串
+	customerID := ""
+	if custIDVal, exists := itemMap["customer_id"]; exists {
+		if c, ok := custIDVal.(string); ok {
+			customerID = c
+		}
+	}
+
+	customerName := ""
+	if custNameVal, exists := itemMap["customer_name"]; exists {
+		if c, ok := custNameVal.(string); ok {
+			customerName = c
+		}
+	}
+
+	status := ""
+	if statusVal, exists := itemMap["status"]; exists {
+		if s, ok := statusVal.(string); ok {
+			status = s
+		}
+	}
+
+	totalAmount := 0
+	if totalVal, exists := itemMap["totalAmount"]; exists {
+		switch v := totalVal.(type) {
+		case float64:
+			totalAmount = int(v)
+		case int:
+			totalAmount = v
+		case string:
+			if v == "" {
+				totalAmount = 0 // 如果是空字符串，則設置為 0
+			} else {
+				// 嘗試將字符串轉換為整數
+				if t, err := strconv.Atoi(v); err == nil {
+					totalAmount = t
+				} else {
+					return nil, errors.New("invalid totalAmount format in order data")
+				}
+			}
+		default:
+			return nil, errors.New("invalid totalAmount format in order data")
+		}
+	}
+
+	var products []models.Item
+	if productsVal, exists := itemMap["products"]; exists {
+		if pList, ok := productsVal.([]any); ok {
+			for _, pItem := range pList {
+				pMap, ok := pItem.(map[string]any)
+				if !ok {
+					continue // 如果格式不正確，跳過這個產品
+				}
+
+				productName, _ := pMap["product"].(string)
+
+				// 處理 quantity 的多種格式
+				quantity := 0
+				if qtyVal, exists := pMap["quantity"]; exists {
+					switch qty := qtyVal.(type) {
+					case float64:
+						quantity = int(qty)
+					case int:
+						quantity = qty
+					case string:
+						if qty == "" {
+							quantity = 0
+						} else {
+							if q, err := strconv.Atoi(qty); err == nil {
+								quantity = q
+							}
+						}
+					default:
+						quantity = 0
+					}
+				}
+
+				// 從價格映射中獲取商品價格
+				price := 0
+				if productName != "" {
+					if p, exists := productPrices[productName]; exists {
+						price = p
+					}
+				}
+
+				products = append(products, models.Item{
+					Product:  productName,
+					Quantity: quantity,
+					Price:    price,
 				})
 			}
 		}

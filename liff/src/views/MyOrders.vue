@@ -108,7 +108,8 @@
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">訂單時間：</span>
-                            <span class="detail-value">{{ selectedOrder.orderTime ? formatDateTime(selectedOrder.orderTime) : '未知時間' }}</span>
+                            <span class="detail-value">{{ selectedOrder.orderTime ?
+                                formatDateTime(selectedOrder.orderTime) : '未知時間' }}</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">訂單狀態：</span>
@@ -254,7 +255,7 @@ const loadOrders = async () => {
                 ...order,
                 orderId: order.id, // 將 id 映射為 orderId
                 items: order.products || [], // 將 products 映射為 items
-                totalAmount: order.totalAmount, // 使用後端返回的總金額
+                totalAmount: order.total_amount, // 使用後端返回的總金額
                 orderTime: order.time // 訂單時間
             })).sort((a, b) => b.id - a.id) // 按 ID 降序排序
         } else if (Array.isArray(orderData)) {
