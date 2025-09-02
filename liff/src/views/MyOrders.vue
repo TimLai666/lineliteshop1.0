@@ -42,7 +42,7 @@
                     <div class="order-header">
                         <div class="order-info">
                             <h3 class="order-id">訂單 #{{ order.orderId }}</h3>
-                            <p class="order-date">{{ formatDate(order.orderTime) }}</p>
+                            <p class="order-date">{{ order.customer_name || '未知客戶' }}</p>
                         </div>
                         <div class="order-status">
                             <span :class="['status-badge', getStatusClass(order.status)]">
@@ -53,13 +53,13 @@
 
                     <!-- 訂單商品列表 -->
                     <div class="order-items">
-                        <div v-for="item in order.items" :key="item.name" class="order-item">
+                        <div v-for="(item, index) in order.items" :key="index" class="order-item">
                             <div class="item-info">
-                                <span class="item-name">{{ item.name }}</span>
-                                <span class="item-quantity">x{{ item.quantity }}</span>
+                                <span class="item-name">{{ item.name || '未知商品' }}</span>
+                                <span class="item-quantity">x{{ item.quantity || 1 }}</span>
                             </div>
                             <div class="item-price">
-                                NT$ {{ item.price * item.quantity }}
+                                NT$ {{ (item.price || 0) * (item.quantity || 1) }}
                             </div>
                         </div>
                     </div>
@@ -101,8 +101,8 @@
                             <span class="detail-value">{{ selectedOrder.orderId }}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">訂單時間：</span>
-                            <span class="detail-value">{{ formatDateTime(selectedOrder.orderTime) }}</span>
+                            <span class="detail-label">客戶名稱：</span>
+                            <span class="detail-value">{{ selectedOrder.customer_name || '未知客戶' }}</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">訂單狀態：</span>
@@ -114,12 +114,12 @@
 
                     <div class="detail-section">
                         <h4>商品清單</h4>
-                        <div v-for="item in selectedOrder.items" :key="item.name" class="detail-item">
+                        <div v-for="(item, index) in selectedOrder.items" :key="index" class="detail-item">
                             <div class="detail-item-info">
-                                <span class="detail-item-name">{{ item.name }}</span>
-                                <span class="detail-item-quantity">x{{ item.quantity }}</span>
+                                <span class="detail-item-name">{{ item.name || '未知商品' }}</span>
+                                <span class="detail-item-quantity">x{{ item.quantity || 1 }}</span>
                             </div>
-                            <span class="detail-item-price">NT$ {{ item.price * item.quantity }}</span>
+                            <span class="detail-item-price">NT$ {{ (item.price || 0) * (item.quantity || 1) }}</span>
                         </div>
                     </div>
 
@@ -241,11 +241,21 @@ const loadOrders = async () => {
         const orderData = await orderApi.getUserOrders(profile.value.userId)
         console.log('載入的訂單資料:', orderData)
 
-        // 確保訂單資料是陣列格式
-        if (Array.isArray(orderData)) {
-            orders.value = orderData.sort((a, b) => new Date(b.orderTime) - new Date(a.orderTime))
-        } else if (orderData && orderData.orders) {
-            orders.value = orderData.orders.sort((a, b) => new Date(b.orderTime) - new Date(a.orderTime))
+        // 處理新的資料結構 { data: [...], message, status }
+        if (orderData && orderData.data && Array.isArray(orderData.data)) {
+            orders.value = orderData.data.map(order => ({
+                ...order,
+                orderId: order.id, // 將 id 映射為 orderId
+                items: order.products || [], // 將 products 映射為 items
+                totalAmount: calculateTotalAmount(order.products || []) // 計算總金額
+            })).sort((a, b) => b.id - a.id) // 按 ID 降序排序
+        } else if (Array.isArray(orderData)) {
+            orders.value = orderData.map(order => ({
+                ...order,
+                orderId: order.id,
+                items: order.products || [],
+                totalAmount: calculateTotalAmount(order.products || [])
+            })).sort((a, b) => b.id - a.id)
         } else {
             orders.value = []
         }
@@ -359,7 +369,21 @@ const formatDateTime = (dateString) => {
     })
 }
 
+const calculateTotalAmount = (products) => {
+    if (!Array.isArray(products)) return 0
+    return products.reduce((total, product) => {
+        const price = product.price || 0
+        const quantity = product.quantity || 1
+        return total + (price * quantity)
+    }, 0)
+}
+
 const getStatusText = (status) => {
+    // 如果已經是中文狀態，直接返回
+    if (typeof status === 'string' && status.length > 0) {
+        return status
+    }
+    // 備用映射
     const statusMap = {
         'pending': '待處理',
         'confirmed': '已確認',
@@ -372,15 +396,16 @@ const getStatusText = (status) => {
 }
 
 const getStatusClass = (status) => {
+    // 根據中文狀態返回對應的 CSS 類
     const classMap = {
-        'pending': 'status-pending',
-        'confirmed': 'status-confirmed',
-        'preparing': 'status-preparing',
-        'ready': 'status-ready',
-        'delivered': 'status-delivered',
-        'cancelled': 'status-cancelled'
+        '待處理': 'status-pending',
+        '已確認': 'status-confirmed',
+        '製作中': 'status-preparing',
+        '已完成': 'status-ready',
+        '已送達': 'status-delivered',
+        '已取消': 'status-cancelled'
     }
-    return classMap[status] || ''
+    return classMap[status] || 'status-pending'
 }
 
 const getStatusLabel = (status) => {
@@ -389,11 +414,11 @@ const getStatusLabel = (status) => {
 }
 
 const canCancelOrder = (status) => {
-    return ['pending', 'confirmed'].includes(status)
+    return ['待處理', '已確認'].includes(status)
 }
 
 const canReorder = (status) => {
-    return ['delivered', 'cancelled'].includes(status)
+    return ['已完成', '已送達', '已取消'].includes(status)
 }
 
 const showAlert = (message, type = 'info') => {

@@ -155,11 +155,18 @@ func (h *Handler) HandleUpdateCustomer(c *gin.Context) {
 }
 
 func (h *Handler) HandleGetOrders(c *gin.Context) {
+	userId := c.Param("lineUserId")
 	orders, err := google_sheet.GetOrders()
 	if err != nil {
 		log.Printf("獲取訂單資料失敗: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get orders"})
 		return
+	}
+	// 如果有提供 userId，則過濾訂單
+	for i, order := range orders {
+		if order.CustomerID != userId {
+			orders = append(orders[:i], orders[i+1:]...)
+		}
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
