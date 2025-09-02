@@ -3,6 +3,7 @@ package google_sheet
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -378,6 +379,8 @@ func GetOrders() ([]models.Order, error) {
 
 		orders = append(orders, *order)
 	}
+
+	fmt.Println("Fetched orders:", orders) // 調試輸出
 
 	return orders, nil
 }

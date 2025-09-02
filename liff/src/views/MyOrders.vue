@@ -183,7 +183,7 @@
             @close="clearAlert" />
 
         <!-- 調試面板 -->
-        <LiffDebugPanel />
+        <!-- <LiffDebugPanel /> -->
     </div>
 </template>
 
