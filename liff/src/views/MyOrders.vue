@@ -43,6 +43,7 @@
                         <div class="order-info">
                             <h3 class="order-id">訂單 #{{ order.orderId }}</h3>
                             <p class="order-date">{{ order.customer_name || '未知客戶' }}</p>
+                            <p class="order-time" v-if="order.orderTime">{{ formatDateTime(order.orderTime) }}</p>
                         </div>
                         <div class="order-status">
                             <span :class="['status-badge', getStatusClass(order.status)]">
@@ -55,8 +56,9 @@
                     <div class="order-items">
                         <div v-for="(item, index) in order.items" :key="index" class="order-item">
                             <div class="item-info">
-                                <span class="item-name">{{ item.name || '未知商品' }}</span>
-                                <span class="item-quantity">x{{ item.quantity || 1 }}</span>
+                                <span class="item-name">{{ item.product || '未知商品' }}</span>
+                                <span class="item-quantity">x{{ item.quantity > 0 ? item.quantity : 1 }}</span>
+                                <span v-if="item.quantity === 0" class="quantity-warning">(數量異常)</span>
                             </div>
                             <div class="item-price">
                                 NT$ {{ (item.price || 0) * (item.quantity || 1) }}
@@ -105,6 +107,10 @@
                             <span class="detail-value">{{ selectedOrder.customer_name || '未知客戶' }}</span>
                         </div>
                         <div class="detail-row">
+                            <span class="detail-label">訂單時間：</span>
+                            <span class="detail-value">{{ selectedOrder.orderTime ? formatDateTime(selectedOrder.orderTime) : '未知時間' }}</span>
+                        </div>
+                        <div class="detail-row">
                             <span class="detail-label">訂單狀態：</span>
                             <span :class="['detail-value', 'status-text', getStatusClass(selectedOrder.status)]">
                                 {{ getStatusText(selectedOrder.status) }}
@@ -116,8 +122,9 @@
                         <h4>商品清單</h4>
                         <div v-for="(item, index) in selectedOrder.items" :key="index" class="detail-item">
                             <div class="detail-item-info">
-                                <span class="detail-item-name">{{ item.name || '未知商品' }}</span>
-                                <span class="detail-item-quantity">x{{ item.quantity || 1 }}</span>
+                                <span class="detail-item-name">{{ item.product || '未知商品' }}</span>
+                                <span class="detail-item-quantity">x{{ item.quantity > 0 ? item.quantity : 1 }}</span>
+                                <span v-if="item.quantity === 0" class="quantity-warning">(數量異常)</span>
                             </div>
                             <span class="detail-item-price">NT$ {{ (item.price || 0) * (item.quantity || 1) }}</span>
                         </div>
@@ -247,14 +254,16 @@ const loadOrders = async () => {
                 ...order,
                 orderId: order.id, // 將 id 映射為 orderId
                 items: order.products || [], // 將 products 映射為 items
-                totalAmount: calculateTotalAmount(order.products || []) // 計算總金額
+                totalAmount: order.totalAmount, // 使用後端返回的總金額
+                orderTime: order.time // 訂單時間
             })).sort((a, b) => b.id - a.id) // 按 ID 降序排序
         } else if (Array.isArray(orderData)) {
             orders.value = orderData.map(order => ({
                 ...order,
                 orderId: order.id,
                 items: order.products || [],
-                totalAmount: calculateTotalAmount(order.products || [])
+                totalAmount: order.totalAmount,
+                orderTime: order.time
             })).sort((a, b) => b.id - a.id)
         } else {
             orders.value = []
@@ -367,15 +376,6 @@ const formatDateTime = (dateString) => {
         hour: '2-digit',
         minute: '2-digit'
     })
-}
-
-const calculateTotalAmount = (products) => {
-    if (!Array.isArray(products)) return 0
-    return products.reduce((total, product) => {
-        const price = product.price || 0
-        const quantity = product.quantity || 1
-        return total + (price * quantity)
-    }, 0)
 }
 
 const getStatusText = (status) => {
@@ -611,6 +611,12 @@ onMounted(() => {
 .order-date {
     font-size: 14px;
     color: var(--text-200);
+    margin: 0 0 2px 0;
+}
+
+.order-time {
+    font-size: 12px;
+    color: var(--text-300);
     margin: 0;
 }
 
@@ -689,6 +695,12 @@ onMounted(() => {
 .item-quantity {
     font-size: 14px;
     color: var(--text-200);
+}
+
+.quantity-warning {
+    font-size: 12px;
+    color: #dc3545;
+    font-weight: 500;
 }
 
 .item-price {

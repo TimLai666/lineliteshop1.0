@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"slices"
-
 	"github.com/gin-gonic/gin"
 	"lineliteshop1.0/internal/google_sheet"
 	"lineliteshop1.0/internal/models"
@@ -157,7 +155,7 @@ func (h *Handler) HandleUpdateCustomer(c *gin.Context) {
 }
 
 func (h *Handler) HandleGetOrders(c *gin.Context) {
-	userId := c.Param("lineUserId")
+	userId := c.Query("lineUserId")
 	orders, err := google_sheet.GetOrders()
 	if err != nil {
 		log.Printf("獲取訂單資料失敗: %v", err)
@@ -166,11 +164,13 @@ func (h *Handler) HandleGetOrders(c *gin.Context) {
 	}
 	// 如果有提供 userId，則過濾訂單
 	if userId != "" {
-		for i, order := range orders {
-			if order.CustomerID != userId {
-				orders = slices.Delete(orders, i, i+1)
+		filteredOrders := []models.Order{}
+		for _, order := range orders {
+			if order.CustomerID == userId {
+				filteredOrders = append(filteredOrders, order)
 			}
 		}
+		orders = filteredOrders
 	}
 
 	c.JSON(http.StatusOK, gin.H{
