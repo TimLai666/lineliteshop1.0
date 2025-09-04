@@ -56,7 +56,7 @@
             </div>
 
             <!-- 調試面板 -->
-            <LiffDebugPanel />
+            <!-- <LiffDebugPanel /> -->
         </div>
     </div>
 </template>
