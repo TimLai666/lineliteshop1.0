@@ -63,7 +63,7 @@ router.beforeEach(async (to, from, next) => {
 
         // 設定頁面標題
         if (to.meta.title) {
-            document.title = "LineLiteShop | " + to.meta.title
+            document.title = "小小商家一點靈 | " + to.meta.title
         }
 
         console.log('路由守衛: 驗證通過，導航到:', to.path)
