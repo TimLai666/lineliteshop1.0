@@ -107,19 +107,20 @@ const checkUserExists = async (userId) => {
             console.log('用戶已存在:', userData)
             userExists.value = true
 
-            // 用戶已存在，跳轉到點餐頁面
-            console.log('用戶已存在，開始跳轉到點餐頁面...')
+            // 用戶已存在，跳轉到記錄的頁面或預設點餐頁面
+            const redirectPath = router.currentRoute.value.query.redirect || '/order'
+            console.log('用戶已存在，開始跳轉到:', redirectPath)
             try {
-                await router.push({ name: 'OrderFood' })
+                await router.push(redirectPath)
                 console.log('跳轉成功')
             } catch (error) {
                 console.error('跳轉失敗:', error)
-                // 如果跳轉失敗，嘗試直接跳轉到 /order
+                // 如果跳轉失敗，嘗試跳轉到點餐頁面
                 try {
-                    await router.push('/order')
-                    console.log('直接路徑跳轉成功')
+                    await router.push({ name: 'OrderFood' })
+                    console.log('跳轉到預設頁面成功')
                 } catch (secondError) {
-                    console.error('直接路徑跳轉也失敗:', secondError)
+                    console.error('跳轉到預設頁面也失敗:', secondError)
                 }
             }
 
@@ -206,7 +207,7 @@ const handleRegister = async () => {
 
         registerResult.value = {
             type: 'success',
-            message: '註冊成功！正在為您跳轉到點餐頁面...'
+            message: '註冊成功！正在為您跳轉...'
         }
 
         // 重置表單
@@ -217,19 +218,20 @@ const handleRegister = async () => {
             address: ''
         }
 
-        // 註冊成功後，跳轉到點餐頁面
-        console.log('開始跳轉到點餐頁面...')
+        // 註冊成功後，跳轉到記錄的頁面或預設點餐頁面
+        const redirectPath = router.currentRoute.value.query.redirect || '/order'
+        console.log('開始跳轉到:', redirectPath)
         try {
-            await router.push({ name: 'OrderFood' })
+            await router.push(redirectPath)
             console.log('跳轉成功')
         } catch (error) {
             console.error('跳轉失敗:', error)
-            // 如果跳轉失敗，可能是路由守衛攔截，嘗試直接跳轉到 /order
+            // 如果跳轉失敗，可能是路由守衛攔截，嘗試跳轉到點餐頁面
             try {
-                await router.push('/order')
-                console.log('直接路徑跳轉成功')
+                await router.push({ name: 'OrderFood' })
+                console.log('跳轉到預設頁面成功')
             } catch (secondError) {
-                console.error('直接路徑跳轉也失敗:', secondError)
+                console.error('跳轉到預設頁面也失敗:', secondError)
             }
         }
 

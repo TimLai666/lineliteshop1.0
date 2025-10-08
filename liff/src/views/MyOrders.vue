@@ -218,12 +218,12 @@ const alertMessage = ref(null)
 // 訂單狀態選項
 const orderStatuses = ref([
     { value: 'all', label: '全部' },
-    { value: 'pending', label: '待處理' },
-    { value: 'confirmed', label: '已確認' },
-    { value: 'preparing', label: '製作中' },
-    { value: 'ready', label: '已完成' },
-    { value: 'delivered', label: '已送達' },
-    { value: 'cancelled', label: '已取消' }
+    { value: '待處理', label: '待處理' },
+    { value: '已確認', label: '已確認' },
+    { value: '製作中', label: '製作中' },
+    { value: '已完成', label: '已完成' },
+    { value: '已送達', label: '已送達' },
+    { value: '已取消', label: '已取消' }
 ])
 
 // 計算屬性
@@ -380,20 +380,8 @@ const formatDateTime = (dateString) => {
 }
 
 const getStatusText = (status) => {
-    // 如果已經是中文狀態，直接返回
-    if (typeof status === 'string' && status.length > 0) {
-        return status
-    }
-    // 備用映射
-    const statusMap = {
-        'pending': '待處理',
-        'confirmed': '已確認',
-        'preparing': '製作中',
-        'ready': '已完成',
-        'delivered': '已送達',
-        'cancelled': '已取消'
-    }
-    return statusMap[status] || status
+    // 直接返回狀態，因為現在狀態已經是中文
+    return status || '未知狀態'
 }
 
 const getStatusClass = (status) => {

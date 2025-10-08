@@ -34,9 +34,10 @@ export class UserValidator {
      * 用於路由守衛中
      * @param {string} lineUserId - LINE 用戶 ID
      * @param {string} targetRouteName - 目標路由名稱
-     * @returns {Promise<{shouldRedirect: boolean, redirectTo?: string}>}
+     * @param {object} route - 當前路由對象，用於獲取查詢參數
+     * @returns {Promise<{shouldRedirect: boolean, redirectTo?: string, query?: object}>}
      */
-    static async validateUserForRoute(lineUserId, targetRouteName) {
+    static async validateUserForRoute(lineUserId, targetRouteName, route) {
         // 如果目標就是註冊頁面，直接通過
         if (targetRouteName === 'UserRegister') {
             return { shouldRedirect: false }
@@ -53,7 +54,9 @@ export class UserValidator {
 
         if (!isRegistered) {
             console.log('UserValidator: 用戶未註冊，重定向到註冊頁面')
-            return { shouldRedirect: true, redirectTo: 'UserRegister' }
+            // 記錄原來的頁面作為查詢參數
+            const query = { redirect: route.path }
+            return { shouldRedirect: true, redirectTo: 'UserRegister', query }
         }
 
         console.log('UserValidator: 用戶驗證通過')
@@ -116,8 +119,9 @@ export const checkUserRegistration = async (lineUserId) => {
  * 用於路由守衛的驗證函數
  * @param {string} lineUserId - LINE 用戶 ID
  * @param {string} targetRouteName - 目標路由名稱
- * @returns {Promise<{shouldRedirect: boolean, redirectTo?: string}>}
+ * @param {object} route - 當前路由對象
+ * @returns {Promise<{shouldRedirect: boolean, redirectTo?: string, query?: object}>}
  */
-export const validateUserForNavigation = async (lineUserId, targetRouteName) => {
-    return await UserValidator.validateUserForRoute(lineUserId, targetRouteName)
+export const validateUserForNavigation = async (lineUserId, targetRouteName, route) => {
+    return await UserValidator.validateUserForRoute(lineUserId, targetRouteName, route)
 }

@@ -72,21 +72,36 @@ function onEdit(e) {
         }
 
         if (col === 5) {
-          // **若未設定價格或價格小於等於0，不允許「下架」以外的狀態**
-          // **若庫存小於等於0，不允許「有現貨」**
+          // **若未設定價格或價格小於等於0，只允許特定狀態**
+          // **若庫存小於等於0，只允許特定狀態且不能設為「有現貨」**
 
           const price = sheet.getRange(row, 3).getValue();
           const stock = sheet.getRange(row, 4).getValue();
           const status = value;
-          if (status !== '下架' && price <= 0) {
+
+          // 定義允許的狀態
+          const allowedStatuses = ['下架', '已售完', '暫時無法供貨'];
+
+          // 當價格小於等於0時，只允許特定狀態
+          if (price <= 0 && !allowedStatuses.includes(status)) {
             // 恢復原值
-            const recoveryValue = e.oldValue && e.oldValue === '下架' ? e.oldValue : '';
+            const recoveryValue = e.oldValue && allowedStatuses.includes(e.oldValue) ? e.oldValue : '';
             e.range.setValue(recoveryValue);
             // 顯示警告訊息
-            SpreadsheetApp.getUi().alert('錯誤', '未設定價格或價格小於等於0時，商品狀態只能為「下架」！', SpreadsheetApp.getUi().ButtonSet.OK);
+            SpreadsheetApp.getUi().alert('錯誤', '未設定價格或價格小於等於0時，商品狀態只能為「下架」、「已售完」或「暫時無法供貨」！', SpreadsheetApp.getUi().ButtonSet.OK);
             return;
           }
 
+          // 當庫存小於等於0時，只允許特定狀態且不能設為「有現貨」
+          if (stock <= 0 && !allowedStatuses.includes(status)) {
+            // 恢復原值
+            e.range.setValue(e.oldValue || '');
+            // 顯示警告訊息
+            SpreadsheetApp.getUi().alert('錯誤', '庫存小於等於0時，商品狀態只能設為「下架」、「已售完」或「暫時無法供貨」！', SpreadsheetApp.getUi().ButtonSet.OK);
+            return;
+          }
+
+          // 額外的檢查：庫存小於等於0時，不能設為「有現貨」
           if (status === '有現貨' && stock <= 0) {
             // 恢復原值
             e.range.setValue(e.oldValue || '');

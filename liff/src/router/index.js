@@ -54,11 +54,11 @@ router.beforeEach(async (to, from, next) => {
         console.log('路由守衛: 用戶 LINE UID:', user_line_uid)
 
         // 使用驗證工具檢查用戶狀態
-        const validation = await validateUserForNavigation(user_line_uid, to.name)
+        const validation = await validateUserForNavigation(user_line_uid, to.name, to)
 
         if (validation.shouldRedirect) {
             console.log('路由守衛: 需要重定向到', validation.redirectTo)
-            return next({ name: validation.redirectTo })
+            return next({ name: validation.redirectTo, query: validation.query })
         }
 
         // 設定頁面標題
