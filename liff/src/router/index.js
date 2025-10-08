@@ -4,6 +4,8 @@ import OrderFood from '../views/OrderFood.vue'
 import MyOrders from '../views/MyOrders.vue'
 import liff from '@line/liff'
 import { validateUserForNavigation, UserValidator } from '../utils/userValidator.js'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 
 const routes = [
     {
@@ -46,6 +48,7 @@ const router = createRouter({
 
 // 簡化的路由守衛
 router.beforeEach(async (to, from, next) => {
+    NProgress.start()
     try {
         console.log('路由守衛: 導航至', to.path, '路由名稱:', to.name)
 
@@ -78,6 +81,10 @@ router.beforeEach(async (to, from, next) => {
         }
         next()
     }
+})
+
+router.afterEach(() => {
+    NProgress.done()
 })
 
 export default router
