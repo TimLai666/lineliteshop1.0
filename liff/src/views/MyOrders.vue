@@ -219,11 +219,9 @@ const alertMessage = ref(null)
 const orderStatuses = ref([
     { value: 'all', label: '全部' },
     { value: '待處理', label: '待處理' },
-    { value: '已確認', label: '已確認' },
-    { value: '製作中', label: '製作中' },
+    { value: '進行中', label: '製作中' },
     { value: '已完成', label: '已完成' },
-    { value: '已送達', label: '已送達' },
-    { value: '已取消', label: '已取消' }
+    { value: '取消', label: '已取消' }
 ])
 
 // 計算屬性
@@ -231,7 +229,21 @@ const filteredOrders = computed(() => {
     if (selectedStatus.value === 'all') {
         return orders.value
     }
-    return orders.value.filter(order => order.status === selectedStatus.value)
+
+    // 對狀態進行標準化比較（去除空格，統一格式）
+    return orders.value.filter(order => {
+        const orderStatus = (order.status || '').toString().trim()
+        const selected = selectedStatus.value.trim()
+
+        // 調試信息
+        console.log('篩選比較:', {
+            orderStatus,
+            selected,
+            match: orderStatus === selected
+        })
+
+        return orderStatus === selected
+    })
 })
 
 // 載入訂單資料
@@ -256,7 +268,8 @@ const loadOrders = async () => {
                 orderId: order.id, // 將 id 映射為 orderId
                 items: order.products || [], // 將 products 映射為 items
                 totalAmount: order.total_amount, // 使用後端返回的總金額
-                orderTime: order.time // 訂單時間
+                orderTime: order.time, // 訂單時間
+                status: (order.status || '').toString().trim() // 標準化狀態值
             })).sort((a, b) => b.id - a.id) // 按 ID 降序排序
         } else if (Array.isArray(orderData)) {
             orders.value = orderData.map(order => ({
@@ -348,9 +361,9 @@ const reorder = (order) => {
     showAlert('功能開發中...', 'info')
 }
 
-// 返回上一頁
+// 返回到點餐頁面
 const goBack = () => {
-    router.go(-1)
+    router.push({ name: 'OrderFood' })
 }
 
 // 跳轉到點餐頁面
@@ -380,11 +393,15 @@ const formatDateTime = (dateString) => {
 }
 
 const getStatusText = (status) => {
-    // 直接返回狀態，因為現在狀態已經是中文
-    return status || '未知狀態'
+    // 標準化狀態值（去除空格）
+    const normalizedStatus = (status || '').toString().trim()
+    return normalizedStatus || '未知狀態'
 }
 
 const getStatusClass = (status) => {
+    // 標準化狀態值
+    const normalizedStatus = (status || '').toString().trim()
+
     // 根據中文狀態返回對應的 CSS 類
     const classMap = {
         '待處理': 'status-pending',
@@ -394,7 +411,7 @@ const getStatusClass = (status) => {
         '已送達': 'status-delivered',
         '已取消': 'status-cancelled'
     }
-    return classMap[status] || 'status-pending'
+    return classMap[normalizedStatus] || 'status-pending'
 }
 
 const getStatusLabel = (status) => {
@@ -403,11 +420,13 @@ const getStatusLabel = (status) => {
 }
 
 const canCancelOrder = (status) => {
-    return ['待處理', '已確認'].includes(status)
+    const normalizedStatus = (status || '').toString().trim()
+    return ['待處理', '已確認'].includes(normalizedStatus)
 }
 
 const canReorder = (status) => {
-    return ['已完成', '已送達', '已取消'].includes(status)
+    const normalizedStatus = (status || '').toString().trim()
+    return ['已完成', '已送達', '已取消'].includes(normalizedStatus)
 }
 
 const showAlert = (message, type = 'info') => {
