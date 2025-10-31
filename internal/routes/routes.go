@@ -40,6 +40,9 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 			apiDataGroup.POST("/order", handler.HandlePostOrder)
 			apiDataGroup.PUT("/order", handler.HandleUpdateOrder)
 		}
+
+		apiGroup.POST("/calculate/:type", handler.HandleCalculate)
+
 	}
 
 	// LIFF 前端應用服務

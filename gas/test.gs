@@ -1,3 +1,8 @@
+function testGetValuesOfSheet() {
+    const values = getValuesOfSheet(orderSheet);
+    Logger.log(values);
+}
+
 function testAddCustomer() {
     const customerData = {
         customer: {
