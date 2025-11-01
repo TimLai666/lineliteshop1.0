@@ -1,7 +1,9 @@
 package routes
 
 import (
+	"lineliteshop1.0/internal/config"
 	"lineliteshop1.0/internal/handlers"
+	"lineliteshop1.0/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,7 +43,7 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 			apiDataGroup.PUT("/order", handler.HandleUpdateOrder)
 		}
 
-		apiGroup.POST("/calculate/:type", handler.HandleCalculate)
+		apiGroup.POST("/calculate/:type", middleware.BearerAuthMiddleware(config.GOOGLE_SHEET_API_TOKEN), handler.HandleCalculate)
 
 	}
 

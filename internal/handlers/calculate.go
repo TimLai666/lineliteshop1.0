@@ -22,11 +22,16 @@ func (h *Handler) HandleCalculate(c *gin.Context) {
 
 	switch t {
 	// case "rfm":
-	// 	return h.HandleRFM(c)
+	//
+	//	return h.HandleRFM(c)
+	//
 	// case "cai":
-	// 	return h.HandleCAI(c)
+	//
+	//	return h.HandleCAI(c)
+	//
 	// case "basket":
-	// 	return h.HandleBasket(c)
+	//
+	//	return h.HandleBasket(c)
 	default:
 		// Set appropriate content type for Problem Details
 		c.Header("Content-Type", "application/problem+json")
