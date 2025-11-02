@@ -3,6 +3,8 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/HazelnutParadise/insyra"
+	"github.com/HazelnutParadise/insyra/mkt"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,12 +20,22 @@ func (h *Handler) HandleCalculate(c *gin.Context) {
 		return
 	}
 
-	// dataTable := insyra.NewDataTable()
+	dataTable, err := insyra.Slice2DToDataTable(data)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	switch t {
-	// case "rfm":
-	//
-	//	return h.HandleRFM(c)
+	// TODO: Implement RFM calculation
+	case "rfm":
+		c.Data(http.StatusOK, "application/json", mkt.RFM(dataTable, mkt.RFMConfig{
+			CustomerIDColName: "TODO",
+			TradingDayColName: "TODO",
+			AmountColName:     "TODO",
+			TimeScale:         mkt.TimeScaleDaily,
+			DateFormat:        "yyyy/MM/dd HH:mm:ss",
+		}).ToJSON_Bytes(true))
 	//
 	// case "cai":
 	//

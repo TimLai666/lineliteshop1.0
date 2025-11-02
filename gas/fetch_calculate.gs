@@ -1,4 +1,4 @@
-const calculateBackendUrl = "https://api.example.com/api/calculate";
+const calculateBackendUrl = "https://lineliteshop.hazelnut-paradise.com/api/calculate";
 
 function CalculateRequest(orderData, type) {
   return {
