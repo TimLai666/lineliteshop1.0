@@ -29,13 +29,15 @@ func (h *Handler) HandleCalculate(c *gin.Context) {
 	switch t {
 	// TODO: Implement RFM calculation
 	case "rfm":
-		c.Data(http.StatusOK, "application/json", mkt.RFM(dataTable, mkt.RFMConfig{
-			CustomerIDColName: "TODO",
-			TradingDayColName: "TODO",
-			AmountColName:     "TODO",
-			TimeScale:         mkt.TimeScaleDaily,
-			DateFormat:        "yyyy/MM/dd HH:mm:ss",
-		}).ToJSON_Bytes(true))
+		c.JSON(http.StatusOK, gin.H{
+			"RFM": mkt.RFM(dataTable, mkt.RFMConfig{
+				CustomerIDColName: "TODO",
+				TradingDayColName: "TODO",
+				AmountColName:     "TODO",
+				TimeScale:         mkt.TimeScaleDaily,
+				DateFormat:        "yyyy/MM/dd HH:mm:ss",
+			}).Data(true),
+		})
 	//
 	// case "cai":
 	//
