@@ -32,7 +32,7 @@ function fetchCalculate(orderDataSheet) {
       amountColName: "總金額",
     }, "rfm"),
     // todo: CAI 計算參數
-    CalculateRequest(orderData, {}, "cai"),
+    // CalculateRequest(orderData, {}, "cai"),
     // TODO: 購物籃
   ];
   const response = UrlFetchApp.fetchAll(requests);
@@ -45,7 +45,7 @@ function fetchCalculate(orderDataSheet) {
 
   return {
     rfm: JSON.parse(response[0].getContentText()).RFM,
-    cai: JSON.parse(response[1].getContentText()).CAI,
+    // cai: JSON.parse(response[1].getContentText()).CAI,
     // TODO: 購物籃
   };
 }
