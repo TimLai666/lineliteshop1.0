@@ -28,7 +28,7 @@ function fetchCalculate(orderDataSheet) {
   const orderData = getValuesOfSheet(orderDataSheet);
   const requests = [
     CalculateRequest(orderData, {
-      customerIDColName: "訂單 ID",
+      customerIDColName: "顧客 ID",
       tradingDayColName: "下單時間",
       amountColName: "總金額",
     }, "rfm"),
