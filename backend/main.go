@@ -33,6 +33,6 @@ func main() {
 	routes.SetupRoutes(r, handler)
 
 	// 啟動 Gin 伺服器
-	log.Println("伺服器啟動於 127.0.0.1:10100 端口")
-	log.Fatal(r.Run("127.0.0.1:10100"))
+	log.Println("伺服器啟動於 :10100 端口")
+	log.Fatal(r.Run(":10100"))
 }

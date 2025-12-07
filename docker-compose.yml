@@ -1,5 +1,6 @@
 services:
   app:
     image: lineliteshop:latest
-    network_mode: host
+    ports:
+      - "127.0.0.1:10100:10100"
     restart: unless-stopped
