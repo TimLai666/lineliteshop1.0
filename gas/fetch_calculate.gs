@@ -26,9 +26,15 @@ function CalculateRequest(orderData, config, type) {
 
 function fetchCalculate(orderDataSheet) {
   const orderData = getValuesOfSheet(orderDataSheet);
+  const statusColIndex = orderData[0].indexOf("狀態");
+  const completedOrderData = orderData.filter((row, index) => {
+    // 保留標題列
+    if (index === 0) return true;
+    // 保留狀態為「已完成」的訂單
+    return row[statusColIndex] === "已完成";
+  });
   const requests = [
-    // todo: 只篩出已完成的訂單
-    CalculateRequest(orderData, {
+    CalculateRequest(completedOrderData, {
       customerIDColName: "顧客 ID",
       tradingDayColName: "下單時間",
       amountColName: "總金額",
