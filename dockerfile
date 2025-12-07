@@ -29,14 +29,10 @@ FROM alpine:latest
 WORKDIR /app
 
 # 從後端構建階段複製二進制文件
-COPY --from=backend-builder /app/backend/main ./backend/main
+COPY --from=backend-builder /app/backend/main ./main
 # 從前端構建階段複製前端構建文件
 COPY --from=frontend-builder /app/dist ./liff/dist
 
 COPY .env .
-
-WORKDIR /app/backend
-
-RUN chmod +x ./main
 
 CMD [ "./main" ]

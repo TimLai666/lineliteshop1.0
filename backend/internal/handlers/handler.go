@@ -72,17 +72,17 @@ func (h *Handler) ServeLIFF(c *gin.Context) {
 
 	// 如果沒有指定文件路徑，默認提供 index.html
 	if filePath == "" || filePath == "/" {
-		c.File("../liff/dist/index.html")
+		c.File("./liff/dist/index.html")
 		return
 	}
 
 	// 構建完整的文件路徑
-	fullPath := filepath.Join("../liff", "dist", filePath)
+	fullPath := filepath.Join("./liff", "dist", filePath)
 
 	// 檢查文件是否存在
 	if _, err := http.Dir(".").Open(fullPath); err != nil {
 		// 如果文件不存在，返回 index.html (SPA 路由支持)
-		c.File("../liff/dist/index.html")
+		c.File("./liff/dist/index.html")
 		return
 	}
 
