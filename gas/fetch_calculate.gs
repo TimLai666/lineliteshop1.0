@@ -27,6 +27,7 @@ function CalculateRequest(orderData, config, type) {
 function fetchCalculate(orderDataSheet) {
   const orderData = getValuesOfSheet(orderDataSheet);
   const requests = [
+    // todo: 只篩出已完成的訂單
     CalculateRequest(orderData, {
       customerIDColName: "顧客 ID",
       tradingDayColName: "下單時間",
