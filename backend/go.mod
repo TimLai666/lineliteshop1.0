@@ -12,7 +12,7 @@ require (
 	codeberg.org/go-latex/latex v0.2.0 // indirect
 	codeberg.org/go-pdf/fpdf v0.11.1 // indirect
 	git.sr.ht/~sbinet/gg v0.7.0 // indirect
-	github.com/HazelnutParadise/insyra v0.2.7 // indirect
+	github.com/HazelnutParadise/insyra v0.2.8 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/ajstarks/svgo v0.0.0-20211024235047-1546f124cd8b // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect

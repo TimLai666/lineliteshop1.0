@@ -15,6 +15,8 @@ github.com/HazelnutParadise/insyra v0.2.6 h1:z917vU3BCRWuF8Iup5QA+YHo/tHBQhWQLXd
 github.com/HazelnutParadise/insyra v0.2.6/go.mod h1:gCplmDjaVl5lIBRuS9zLQzpvKPo3iTfd2NEolsBogYU=
 github.com/HazelnutParadise/insyra v0.2.7 h1:z92ZZ8Q2sDNmyIxNQhr/YNSSc3umE9przOwnqHt14WA=
 github.com/HazelnutParadise/insyra v0.2.7/go.mod h1:gCplmDjaVl5lIBRuS9zLQzpvKPo3iTfd2NEolsBogYU=
+github.com/HazelnutParadise/insyra v0.2.8 h1:bk8snZCeBgurzAhCtsFQ6b+QBCsq2ewxT89IQ1dWOgQ=
+github.com/HazelnutParadise/insyra v0.2.8/go.mod h1:LBKKH+F2gIRynoO1OyiZAK3dPdEOskDHo8epe/acj6M=
 github.com/Masterminds/squirrel v1.5.4 h1:uUcX/aBc8O7Fg9kaISIUsHXdKuqehiXAMQTYX8afzqM=
 github.com/Masterminds/squirrel v1.5.4/go.mod h1:NNaOrjSoIDfDA40n7sr2tPNZRfjzjA400rg+riTZj10=
 github.com/ajstarks/deck v0.0.0-20200831202436-30c9fc6549a9/go.mod h1:JynElWSGnm/4RlzPXRlREEwqTHAN3T56Bv2ITsFT3gY=
