@@ -1,4 +1,4 @@
-FROM node:24-alpine AS frontend-builder
+FROM node:25-alpine3.22 AS frontend-builder
 
 # 設置工作目錄
 WORKDIR /app
@@ -14,7 +14,9 @@ FROM golang:1.25-alpine AS backend-builder
 
 WORKDIR /app
 
-COPY . .
+COPY ./backend ./backend
+
+WORKDIR /app/backend
 
 RUN go mod download
 
@@ -26,10 +28,14 @@ FROM alpine:latest
 WORKDIR /app
 
 # 從後端構建階段複製二進制文件
-COPY --from=backend-builder /app/main .
+COPY --from=backend-builder /app/backend/main ./backend/main
 # 從前端構建階段複製前端構建文件
 COPY --from=frontend-builder /app/dist ./liff/dist
 
 COPY .env .
+
+WORKDIR /app/backend
+
+RUN chmod +x ./main
 
 CMD [ "./main" ]

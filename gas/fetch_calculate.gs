@@ -18,6 +18,7 @@ function CalculateRequest(orderData, config, type) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": "Bearer " + settings.token,
     },
     payload: JSON.stringify({ data: orderData, config: config }),
   };

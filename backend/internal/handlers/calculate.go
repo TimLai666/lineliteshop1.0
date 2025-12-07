@@ -20,7 +20,7 @@ func (h *Handler) HandleCalculate(c *gin.Context) {
 		return
 	}
 
-	dataTable, err := insyra.Slice2DToDataTable(jsonData["data"])
+	dataTable, err := insyra.Slice2DToDataTable(jsonData["data"].([][]any))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
