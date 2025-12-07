@@ -52,6 +52,7 @@ func (h *Handler) HandleCalculate(c *gin.Context) {
 				AmountColName:     amountColName,
 				TimeScale:         mkt.TimeScaleDaily,
 				DateFormat:        "yyyy/MM/dd HH:mm:ss",
+				NumGroups:         2,
 			}).ColNamesToFirstRow().To2DSlice(),
 		})
 	//
