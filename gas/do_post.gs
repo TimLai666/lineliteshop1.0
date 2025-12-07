@@ -315,6 +315,9 @@ function addOrder(data) {
     }
   }
 
+  // 執行RFM, CAI, 購物籃等計算並存儲結果
+  doAllCalculationsAndStoreResults()
+
   return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -354,6 +357,10 @@ function updateOrder(data) {
     // 更新內部備註
     sheet.getRange(rowToUpdate, 9).setValue(order.internal_note); // 假設內部備註在第8列
   }
+
+  // todo: 可優化 只有某些欄位更新時不執行
+  // 執行RFM, CAI, 購物籃等計算並存儲結果
+  doAllCalculationsAndStoreResults()
 
   return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
     .setMimeType(ContentService.MimeType.JSON);
