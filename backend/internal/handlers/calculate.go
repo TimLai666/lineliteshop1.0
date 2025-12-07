@@ -20,11 +20,17 @@ func (h *Handler) HandleCalculate(c *gin.Context) {
 		return
 	}
 
-	dataTable, err := insyra.Slice2DToDataTable(jsonData["data"].([][]any))
+	data := jsonData["data"].([]any)
+	var data2d [][]any
+	for _, row := range data {
+		data2d = append(data2d, row.([]any))
+	}
+	dataTable, err := insyra.Slice2DToDataTable(data2d)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	dataTable.SetRowToColNames(0)
 
 	config := jsonData["config"].(map[string]any)
 

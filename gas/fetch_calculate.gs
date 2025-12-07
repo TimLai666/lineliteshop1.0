@@ -36,6 +36,7 @@ function fetchCalculate(orderDataSheet) {
     // CalculateRequest(orderData, {}, "cai"),
     // TODO: 購物籃
   ];
+  Logger.log("Sending calculation requests: " + requests);
   const response = UrlFetchApp.fetchAll(requests);
   // Check for errors in the responses
   for (let i = 0; i < response.length; i++) {
