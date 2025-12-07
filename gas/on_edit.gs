@@ -113,9 +113,6 @@ function onEdit(e) {
       }
       break;
     case '訂單':
-      // todo: 可優化 只有某些欄位更新時不執行
-      // 執行RFM, CAI, 購物籃等計算並存儲結果
-      doAllCalculationsAndStoreResults()
       break;
   }
 }
