@@ -20,7 +20,8 @@ WORKDIR /app/backend
 
 RUN go mod download
 
-RUN go build -o main .
+# arm64 建立
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o main .
 
 FROM alpine:latest
 
