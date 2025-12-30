@@ -3,3 +3,5 @@ liff/.env
 liff/.env.production
 .env
 *.tar
+.vscode/
+.DS_Store

@@ -1,0 +1,11 @@
+.vscode/
+.DS_Store
+/liff/.vscode
+/liff/node_modules
+/liff/dist
+.env.example
+*.md
+gas/
+*.tar\
+rich_menu/
+*.pdf
