@@ -1,13 +1,14 @@
 const calculateBackendUrl = "https://lineliteshop.hazelnut-paradise.com/api/calculate";
 
 function doAllCalculationsAndStoreResults() {
-  const calculationResults = fetchCalculate(orderSheet);
+  const { rfm: rfmData, cai: caiData } = fetchCalculate(orderSheet);
+
 
   // Store RFM results
-  const rfmData = calculationResults.rfm;
   setValuesToSheet(rfmSheet, rfmData);
 
-  // todo: Store CAI results
+  // Store CAI results
+  setValuesToSheet(caiSheet, caiData);
 
   // todo: Store 購物籃結果
 }
@@ -40,7 +41,10 @@ function fetchCalculate(orderDataSheet) {
       amountColName: "總金額",
     }, "rfm"),
     // todo: CAI 計算參數
-    // CalculateRequest(orderData, {}, "cai"),
+    CalculateRequest(completedOrderData, {
+      customerIDColName: "顧客 ID",
+      tradingDayColName: "下單時間",
+    }, "cai"),
     // TODO: 購物籃
   ];
   Logger.log("Sending calculation requests: " + requests);
@@ -54,7 +58,7 @@ function fetchCalculate(orderDataSheet) {
 
   return {
     rfm: JSON.parse(response[0].getContentText()).RFM,
-    // cai: JSON.parse(response[1].getContentText()).CAI,
+    cai: JSON.parse(response[1].getContentText()).CAI,
     // TODO: 購物籃
   };
 }

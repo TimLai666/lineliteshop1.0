@@ -35,7 +35,7 @@ func (h *Handler) HandleCalculate(c *gin.Context) {
 	config := jsonData["config"].(map[string]any)
 
 	switch t {
-	// TODO: Implement RFM calculation
+	// TODO: Implement 購物籃 calculation
 	case "rfm":
 		customerIDColName, okCustomerIDColName := config["customerIDColName"].(string)
 		tradingDayColName, okTradingDayColName := config["tradingDayColName"].(string)
@@ -55,11 +55,21 @@ func (h *Handler) HandleCalculate(c *gin.Context) {
 				NumGroups:         2,
 			}).ColNamesToFirstRow().To2DSlice(),
 		})
-	//
-	// case "cai":
-	//
-	//	return h.HandleCAI(c)
-	//
+	case "cai":
+		customerIDColName, okCustomerIDColName := config["customerIDColName"].(string)
+		tradingDayColName, okTradingDayColName := config["tradingDayColName"].(string)
+		if !okCustomerIDColName || !okTradingDayColName || customerIDColName == "" || tradingDayColName == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing config parameters"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"CAI": mkt.CAI(dataTable, mkt.CAIConfig{
+				CustomerIDColName: customerIDColName,
+				TradingDayColName: tradingDayColName,
+				TimeScale:         mkt.TimeScaleDaily,
+				DateFormat:        "yyyy/MM/dd HH:mm:ss",
+			}).ColNamesToFirstRow().To2DSlice(),
+		})
 	// case "basket":
 	//
 	//	return h.HandleBasket(c)
