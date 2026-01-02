@@ -56,3 +56,16 @@ func (s *LineService) SwitchUserRichMenu(userId, richMenuId string) error {
 	_, err := s.bot.LinkRichMenuIdToUser(userId, richMenuId)
 	return err
 }
+
+func (s *LineService) PushTextMessage(userId, text string, notificationDisabled bool) error {
+	_, err := s.bot.PushMessage(&messaging_api.PushMessageRequest{
+		To: userId,
+		Messages: []messaging_api.MessageInterface{
+			messaging_api.TextMessage{
+				Text: text,
+			},
+		},
+		NotificationDisabled: notificationDisabled,
+	}, "")
+	return err
+}

@@ -44,6 +44,7 @@ func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 		}
 
 		apiGroup.POST("/calculate/:type", middleware.BearerAuthMiddleware(config.GOOGLE_SHEET_API_TOKEN), handler.HandleCalculate)
+		apiGroup.POST("/line/message", middleware.BearerAuthMiddleware(config.GOOGLE_SHEET_API_TOKEN), handler.HandlePushMessage)
 
 	}
 
