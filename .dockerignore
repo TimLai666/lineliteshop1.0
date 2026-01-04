@@ -6,6 +6,6 @@
 .env.example
 *.md
 gas/
-*.tar\
+*.tar
 rich_menu/
 *.pdf
