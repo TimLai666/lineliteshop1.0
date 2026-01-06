@@ -270,7 +270,11 @@ const loadOrders = async () => {
                 totalAmount: order.total_amount, // 使用後端返回的總金額
                 orderTime: order.time, // 訂單時間
                 status: (order.status || '').toString().trim() // 標準化狀態值
-            })).sort((a, b) => b.id - a.id) // 按 ID 降序排序
+            })).sort((a, b) => {
+                const ta = a.orderTime ? new Date(a.orderTime).getTime() : 0
+                const tb = b.orderTime ? new Date(b.orderTime).getTime() : 0
+                return tb - ta // 依照訂單時間降序（新的在前）
+            })
         } else if (Array.isArray(orderData)) {
             orders.value = orderData.map(order => ({
                 ...order,
@@ -278,7 +282,11 @@ const loadOrders = async () => {
                 items: order.products || [],
                 totalAmount: order.totalAmount,
                 orderTime: order.time
-            })).sort((a, b) => b.id - a.id)
+            })).sort((a, b) => {
+                const ta = a.orderTime ? new Date(a.orderTime).getTime() : 0
+                const tb = b.orderTime ? new Date(b.orderTime).getTime() : 0
+                return tb - ta // 依照訂單時間降序（新的在前）
+            })
         } else {
             orders.value = []
         }
