@@ -45,8 +45,10 @@ export class UserValidator {
 
         // 檢查是否有有效的用戶 ID
         if (!lineUserId) {
-            console.log('UserValidator: 沒有有效的用戶 ID，重定向到註冊頁面')
-            return { shouldRedirect: true, redirectTo: 'UserRegister' }
+            console.log('UserValidator: 沒有有效的用戶 ID，重定向到註冊頁面，並保留原始導向')
+            // 如果使用者尚未登入，保留原始導向（使用 fullPath 包含 query/hash）以便登入後回跳
+            const query = { redirect: route.fullPath }
+            return { shouldRedirect: true, redirectTo: 'UserRegister', query }
         }
 
         // 檢查用戶是否已註冊
@@ -54,8 +56,8 @@ export class UserValidator {
 
         if (!isRegistered) {
             console.log('UserValidator: 用戶未註冊，重定向到註冊頁面')
-            // 記錄原來的頁面作為查詢參數
-            const query = { redirect: route.path }
+            // 記錄原來的頁面作為查詢參數（使用 fullPath 以保留完整路徑資訊）
+            const query = { redirect: route.fullPath }
             return { shouldRedirect: true, redirectTo: 'UserRegister', query }
         }
 
