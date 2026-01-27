@@ -17,8 +17,8 @@ type Handler struct {
 	lineService *services.LineService
 }
 
-func NewHandler(bot *messaging_api.MessagingApiAPI) *Handler {
-	lineService := services.NewLineService(bot)
+func NewHandler(bot *messaging_api.MessagingApiAPI, blobClient *messaging_api.MessagingApiBlobAPI) *Handler {
+	lineService := services.NewLineService(bot, blobClient)
 	return &Handler{
 		lineService: lineService,
 	}

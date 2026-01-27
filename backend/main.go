@@ -23,8 +23,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 初始化處理器 (內部會自動初始化服務層)
-	handler := handlers.NewHandler(bot)
+	// 建立 Blob client（與 Messaging API 共用相同的 channel token）
+	blobClient, err := messaging_api.NewMessagingApiBlobAPI(config.LINE_CHANNEL_TOKEN)
+	if err != nil {
+		log.Printf("建立 blob client 失敗: %v", err)
+		blobClient = nil
+	}
+
+	// 初始化處理器 (將 bot 與 blobClient 傳入服務層)
+	handler := handlers.NewHandler(bot, blobClient)
 
 	// 初始化 Gin 路由器 (使用預設中間件)
 	r := gin.Default()

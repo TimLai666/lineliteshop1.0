@@ -11,18 +11,7 @@ type LineService struct {
 	blobClient *messaging_api.MessagingApiBlobAPI
 }
 
-func NewLineService(bot *messaging_api.MessagingApiAPI) *LineService {
-	// 嘗試建立 blob client，如果失敗就先設為 nil
-	var blobClient *messaging_api.MessagingApiBlobAPI
-
-	// 從環境變數或配置中取得 channel token
-	// 這裡可以根據實際需求調整
-	blobClient, err := messaging_api.NewMessagingApiBlobAPI("")
-	if err != nil {
-		log.Printf("建立 blob client 失敗: %v", err)
-		blobClient = nil
-	}
-
+func NewLineService(bot *messaging_api.MessagingApiAPI, blobClient *messaging_api.MessagingApiBlobAPI) *LineService {
 	return &LineService{
 		bot:        bot,
 		blobClient: blobClient,
