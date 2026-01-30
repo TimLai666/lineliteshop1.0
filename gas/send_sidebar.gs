@@ -2,7 +2,7 @@
  * 發信側欄相關功能
  */
 
-const lineBackendUrl = "https://lineliteshop.hazelnut-paradise.com/api/calculate/api/line/message"
+const lineBackendUrl = "https://lineliteshop.hazelnut-paradise.com/api/line/message"
 
 function showSendSidebar() {
     const html = HtmlService.createHtmlOutputFromFile('SendSidebar')
