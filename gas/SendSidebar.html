@@ -62,6 +62,8 @@
             <option value="line">LINE</option>
         </select>
 
+        <div id="recipientInfo" style="font-size:12px;color:#666;margin-top:6px;"></div>
+
         <div id="emailFields">
             <label>主旨</label>
             <input type="text" id="subjectInput" placeholder="Email 主旨">
@@ -83,6 +85,7 @@
     <script>
         function init() {
             google.script.run.withSuccessHandler(populateFields).getGroupingFields();
+            google.script.run.withSuccessHandler(setRecipientField).getLineRecipientField();
             document.getElementById('channelSelect').addEventListener('change', onChannelChange);
             onChannelChange();
         }
@@ -137,9 +140,18 @@
             ta.selectionStart = ta.selectionEnd = start + token.length;
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
         function onChannelChange() {
             const ch = document.getElementById('channelSelect').value;
             document.getElementById('emailFields').style.display = ch === 'email' ? 'block' : 'none';
+        }
+
+        function setRecipientField(field) {
+            document.getElementById('recipientInfo').textContent = 'LINE 目標欄位：' + field + '（可在設定表修改 `line_recipient_field`）';
         }
 
         function onSend() {
@@ -156,7 +168,17 @@
                     const ok = resp.results.filter(r => r.status === 'sent').length;
                     const skipped = resp.results.filter(r => r.status === 'skipped').length;
                     const err = resp.results.filter(r => r.status === 'error').length;
-                    document.getElementById('summary').innerHTML = `發送完成 ✅ 成功 ${ok}，跳過 ${skipped}，錯誤 ${err}`;
+                    let html = `發送完成 ✅ 成功 ${ok}，跳過 ${skipped}，錯誤 ${err}`;
+                    html += '<ul style="margin-top:8px;padding-left:18px">';
+                    resp.results.forEach(r => {
+                        let line = `<li><strong>${escapeHtml(r.name || r.id)}</strong> — ${r.status}`;
+                        if (r.reason) line += `：${escapeHtml(r.reason)}`;
+                        if (r.responseCode) line += `（HTTP ${r.responseCode}）`;
+                        line += '</li>';
+                        html += line;
+                    });
+                    html += '</ul>';
+                    document.getElementById('summary').innerHTML = html;
                 } else {
                     document.getElementById('summary').textContent = '錯誤：' + resp.message;
                 }
