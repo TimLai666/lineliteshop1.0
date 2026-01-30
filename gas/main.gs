@@ -6,3 +6,10 @@ const orderSheet = spreadsheet.getSheetByName('訂單');
 const rfmSheet = spreadsheet.getSheetByName('RFM');
 const caiSheet = spreadsheet.getSheetByName('CAI');
 const settingsSheet = spreadsheet.getSheetByName('設定');
+
+function onOpen() {
+    SpreadsheetApp.getUi()
+        .createMenu('行銷')
+        .addItem('發信側欄', 'showSendSidebar')
+        .addToUi();
+}

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <style>
+        body {
+            font-family: Roboto, Noto Sans TC, Arial;
+            padding: 12px;
+        }
+
+        label {
+            display: block;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        select,
+        textarea,
+        input[type=text] {
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 6px;
+        }
+
+        .tokens {
+            margin-top: 6px;
+        }
+
+        .tokens button {
+            margin: 4px 6px 4px 0;
+        }
+
+        #groupList {
+            max-height: 160px;
+            overflow: auto;
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        .summary {
+            margin-top: 10px;
+        }
+
+        .btn {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <label>分群依據</label>
+        <select id="fieldSelect" onchange="onFieldChange()"></select>
+
+        <label>選擇分群（可多選）</label>
+        <div id="groupList">載入中...</div>
+
+        <label>發送方式</label>
+        <select id="channelSelect">
+            <option value="email">Email</option>
+            <option value="line">LINE</option>
+        </select>
+
+        <div id="emailFields">
+            <label>主旨</label>
+            <input type="text" id="subjectInput" placeholder="Email 主旨">
+        </div>
+
+        <label>訊息內容</label>
+        <div class="tokens">
+            <button type="button" onclick="insertToken('{{customerName}}')">顧客姓名</button>
+            <button type="button" onclick="insertToken('{{customerEmail}}')">顧客 Email</button>
+            <button type="button" onclick="insertToken('{{customerPhone}}')">顧客電話</button>
+        </div>
+        <textarea id="messageInput" rows="8" placeholder="在此撰寫內文，可使用上方按鈕插入變數"></textarea>
+
+        <button class="btn" onclick="onSend()">發送</button>
+
+        <div class="summary" id="summary"></div>
+    </div>
+
+    <script>
+        function init() {
+            google.script.run.withSuccessHandler(populateFields).getGroupingFields();
+            document.getElementById('channelSelect').addEventListener('change', onChannelChange);
+            onChannelChange();
+        }
+
+        function populateFields(fields) {
+            const sel = document.getElementById('fieldSelect');
+            sel.innerHTML = '';
+            fields.forEach(f => {
+                const o = document.createElement('option');
+                o.value = f; o.textContent = f;
+                sel.appendChild(o);
+            });
+            onFieldChange();
+        }
+
+        function onFieldChange() {
+            const field = document.getElementById('fieldSelect').value;
+            const groupList = document.getElementById('groupList');
+            groupList.textContent = '載入中...';
+            google.script.run.withSuccessHandler(function (values) {
+                renderGroupList(values);
+            }).getDistinctGroupValues(field);
+        }
+
+        function renderGroupList(values) {
+            const container = document.getElementById('groupList');
+            container.innerHTML = '';
+            if (!values || values.length === 0) {
+                container.textContent = '找不到分群或該欄為空。';
+                return;
+            }
+            values.forEach(v => {
+                const id = 'g_' + v.replace(/\s+/g, '_');
+                const cb = document.createElement('input');
+                cb.type = 'checkbox'; cb.id = id; cb.value = v;
+                const label = document.createElement('label');
+                label.style.display = 'block';
+                label.appendChild(cb);
+                label.appendChild(document.createTextNode(' ' + v));
+                container.appendChild(label);
+            });
+        }
+
+        function insertToken(token) {
+            const ta = document.getElementById('messageInput');
+            const start = ta.selectionStart || 0;
+            const end = ta.selectionEnd || 0;
+            const before = ta.value.substring(0, start);
+            const after = ta.value.substring(end);
+            ta.value = before + token + after;
+            ta.focus();
+            ta.selectionStart = ta.selectionEnd = start + token.length;
+        }
+
+        function onChannelChange() {
+            const ch = document.getElementById('channelSelect').value;
+            document.getElementById('emailFields').style.display = ch === 'email' ? 'block' : 'none';
+        }
+
+        function onSend() {
+            const field = document.getElementById('fieldSelect').value;
+            const checkboxes = document.querySelectorAll('#groupList input[type=checkbox]:checked');
+            const groups = Array.from(checkboxes).map(cb => cb.value);
+            const channel = document.getElementById('channelSelect').value;
+            const subject = document.getElementById('subjectInput').value;
+            const message = document.getElementById('messageInput').value;
+
+            document.getElementById('summary').textContent = '發送中...';
+            google.script.run.withSuccessHandler(function (resp) {
+                if (resp.status === 'success') {
+                    const ok = resp.results.filter(r => r.status === 'sent').length;
+                    const skipped = resp.results.filter(r => r.status === 'skipped').length;
+                    const err = resp.results.filter(r => r.status === 'error').length;
+                    document.getElementById('summary').innerHTML = `發送完成 ✅ 成功 ${ok}，跳過 ${skipped}，錯誤 ${err}`;
+                } else {
+                    document.getElementById('summary').textContent = '錯誤：' + resp.message;
+                }
+            }).sendMessages({ fieldName: field, groups: groups, channel: channel, subject: subject, message: message });
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+
+</html>
