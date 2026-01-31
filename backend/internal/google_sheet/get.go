@@ -132,7 +132,22 @@ func GetProducts() ([]models.Product, error) {
 		products = append(products, *product)
 	}
 
-	return products, nil
+	// 取得啟用的類別清單並過濾掉屬於未啟用類別的商品
+	activeMap, err := getActiveCategoryMap()
+	if err != nil {
+		// 若取得類別失敗，記錄但仍回傳原始商品清單，避免因網路或 API 問題導致整個商品 API 失敗
+		fmt.Printf("warning: could not get categories for filtering products: %v\n", err)
+		return products, nil
+	}
+
+	filtered := make([]models.Product, 0, len(products))
+	for _, p := range products {
+		if p.Category == "" || activeMap[p.Category] {
+			filtered = append(filtered, p)
+		}
+	}
+
+	return filtered, nil
 }
 
 // parseProduct 解析單個商品項目
@@ -221,6 +236,21 @@ func parseProduct(itemMap map[string]any) (*models.Product, error) {
 	}, nil
 }
 
+// getActiveCategoryMap 回傳一個 map，用來快速查詢類別是否為啟用狀態
+func getActiveCategoryMap() (map[string]bool, error) {
+	cats, err := GetCategories()
+	if err != nil {
+		return nil, err
+	}
+	m := make(map[string]bool, len(cats))
+	for _, c := range cats {
+		if c.IsActive {
+			m[c.Name] = true
+		}
+	}
+	return m, nil
+}
+
 func GetProductByName(name string) (*models.Product, error) {
 	// 呼叫 Google Sheet API 來獲取商品資料
 	apiResponse, err := callGetApi("PRODUCTS")
@@ -244,7 +274,20 @@ func GetProductByName(name string) (*models.Product, error) {
 		}
 
 		if product.Name == name {
-			return product, nil // 找到後直接返回
+			// 確認此商品所屬類別是否為啟用狀態
+			activeMap, err := getActiveCategoryMap()
+			if err != nil {
+				// 無法取得類別時不阻斷，回傳商品並記錄警告
+				fmt.Printf("warning: could not get categories when fetching product by name: %v\n", err)
+				return product, nil
+			}
+
+			if product.Category == "" || activeMap[product.Category] {
+				return product, nil // 找到且類別啟用
+			}
+
+			// 類別未啟用，當作沒找到
+			return nil, errors.New("product not found")
 		}
 	}
 
