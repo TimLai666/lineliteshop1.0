@@ -150,6 +150,37 @@ func GetProducts() ([]models.Product, error) {
 	return filtered, nil
 }
 
+// GetProductsAll returns all products without filtering by active category.
+// This is used for order history and pricing so inactive categories won't zero out prices.
+func GetProductsAll() ([]models.Product, error) {
+	// 呼叫 Google Sheet API 來獲取商品資料
+	apiResponse, err := callGetApi("PRODUCTS")
+	if err != nil {
+		return nil, err
+	}
+
+	if apiResponse.Data == nil {
+		return nil, nil
+	}
+
+	products := make([]models.Product, 0, len(apiResponse.Data))
+	for _, item := range apiResponse.Data {
+		itemMap, ok := item.(map[string]any)
+		if !ok {
+			return nil, errors.New("invalid item format in product data")
+		}
+
+		product, err := parseProduct(itemMap)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, *product)
+	}
+
+	return products, nil
+}
+
 // parseProduct 解析單個商品項目
 func parseProduct(itemMap map[string]any) (*models.Product, error) {
 	name, ok := itemMap["name"].(string)
@@ -460,7 +491,7 @@ func GetOrderByID(id uint) (*models.Order, error) {
 	// 批量查詢商品價格
 	productPrices := make(map[string]int)
 	if len(productNames) > 0 {
-		products, err := GetProducts()
+		products, err := GetProductsAll()
 		if err != nil {
 			fmt.Printf("Warning: Failed to get products data: %v\n", err)
 		} else {
@@ -522,7 +553,7 @@ func GetOrders() ([]models.Order, error) {
 	productPrices := make(map[string]int)
 	if len(productNames) > 0 {
 		// 獲取所有商品資料
-		products, err := GetProducts()
+		products, err := GetProductsAll()
 		if err != nil {
 			// 如果獲取商品資料失敗，使用默認價格 0
 			fmt.Printf("Warning: Failed to get products data: %v\n", err)
