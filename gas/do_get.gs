@@ -71,16 +71,9 @@ function getProducts() {
     ).setMimeType(ContentService.MimeType.JSON);
   }
 
+  const headerMap = getProductHeaderMap();
   const data = productSheet.getDataRange().getValues();
-  const products = data.slice(1).map((row) => ({
-    name: row[0],
-    category: row[1],
-    price: row[2],
-    stock: row[3],
-    status: row[4],
-    description: row[5],
-    image_url: extractProductImageUrl(row[6]),
-  }));
+  const products = data.slice(1).map((row) => buildProductApiObjectFromRow(row, headerMap));
 
   return ContentService.createTextOutput(
     JSON.stringify({
@@ -88,22 +81,6 @@ function getProducts() {
       data: products,
     }),
   ).setMimeType(ContentService.MimeType.JSON);
-}
-
-function extractProductImageUrl(cellValue) {
-  if (!cellValue) {
-    return "";
-  }
-
-  if (typeof cellValue === "string") {
-    return cellValue;
-  }
-
-  if (typeof cellValue.getContentUrl === "function") {
-    return cellValue.getContentUrl() || "";
-  }
-
-  return "";
 }
 
 function getCustomers() {

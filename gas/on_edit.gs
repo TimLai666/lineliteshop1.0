@@ -38,8 +38,10 @@ function onEdit(e) {
         }
       }
       break;
-    case '商品':
-      if (col === 1 && row > 1) {
+    case '商品': {
+      const productHeaderMap = getProductHeaderMap(["name", "category", "price", "stock", "status"]);
+
+      if (col === productHeaderMap.name && row > 1) {
         // **新增商品時，確保商品名稱唯一，若名稱已存在則恢復原值並顯示警告訊息**
         // **新增商品後，自動將庫存設為0並將狀態設為「下架」**
 
@@ -47,7 +49,7 @@ function onEdit(e) {
         if (!value) return; // 如果值為空，則不處理
 
         // 檢查值是否唯一，如果不唯一則恢復原值並顯示警告
-        if (!isUniqueInColumn(sheet, 1, value, row)) {
+        if (!isUniqueInColumn(sheet, productHeaderMap.name, value, row)) {
           // 恢復原值
           e.range.setValue(e.oldValue || '');
           // 顯示警告訊息
@@ -57,13 +59,13 @@ function onEdit(e) {
 
         // 如果是新增商品，則自動將狀態設為「下架」
         if (!e.oldValue) {
-          sheet.getRange(row, 4).setValue(0); // 假設狀態在第5列
-          sheet.getRange(row, 5).setValue('下架'); // 假設狀態在第5列
+          sheet.getRange(row, productHeaderMap.stock).setValue(0);
+          sheet.getRange(row, productHeaderMap.status).setValue('下架');
         }
-      } else if ((col === 2 || col === 5) && row > 1) {
+      } else if ((col === productHeaderMap.category || col === productHeaderMap.status) && row > 1) {
         // **商品名稱不為空時，才能設定類別或狀態**
 
-        productName = sheet.getRange(row, 1).getValue();
+        const productName = sheet.getRange(row, productHeaderMap.name).getValue();
         if (!productName) {
           e.range.setValue(e.oldValue || '');
           // 顯示警告訊息
@@ -71,12 +73,12 @@ function onEdit(e) {
           return;
         }
 
-        if (col === 5) {
+        if (col === productHeaderMap.status) {
           // **若未設定價格或價格小於等於0，只允許特定狀態**
           // **若庫存小於等於0，只允許特定狀態且不能設為「有現貨」**
 
-          const price = sheet.getRange(row, 3).getValue();
-          const stock = sheet.getRange(row, 4).getValue();
+          const price = sheet.getRange(row, productHeaderMap.price).getValue();
+          const stock = sheet.getRange(row, productHeaderMap.stock).getValue();
           const status = value;
 
           // 定義允許的狀態
@@ -112,6 +114,7 @@ function onEdit(e) {
         }
       }
       break;
+    }
     case '訂單':
       break;
   }
