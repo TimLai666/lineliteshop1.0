@@ -79,6 +79,7 @@ function getProducts() {
     stock: row[3],
     status: row[4],
     description: row[5],
+    image_url: extractProductImageUrl(row[6]),
   }));
 
   return ContentService.createTextOutput(
@@ -87,6 +88,22 @@ function getProducts() {
       data: products,
     }),
   ).setMimeType(ContentService.MimeType.JSON);
+}
+
+function extractProductImageUrl(cellValue) {
+  if (!cellValue) {
+    return "";
+  }
+
+  if (typeof cellValue === "string") {
+    return cellValue;
+  }
+
+  if (typeof cellValue.getContentUrl === "function") {
+    return cellValue.getContentUrl() || "";
+  }
+
+  return "";
 }
 
 function getCustomers() {

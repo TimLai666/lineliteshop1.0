@@ -54,7 +54,13 @@
                     </div>
 
                     <div class="product-image">
-                        <span class="product-emoji">🍽️</span>
+                        <img
+                            v-if="product.image_url"
+                            :src="product.image_url"
+                            :alt="product.name"
+                            loading="lazy"
+                        />
+                        <span v-else class="product-emoji">🍽️</span>
                     </div>
                     <div class="product-info">
                         <h3 class="product-name">{{ product.name }}</h3>
@@ -848,6 +854,14 @@ onMounted(async () => {
     justify-content: center;
     position: relative;
     overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: relative;
+    z-index: 1;
 }
 
 .product-image::before {

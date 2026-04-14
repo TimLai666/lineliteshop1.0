@@ -39,3 +39,24 @@ func TestParseCustomerParsesDemographics(t *testing.T) {
 		t.Fatalf("expected household size 3人, got %q", customer.HouseholdSize)
 	}
 }
+
+func TestParseProductParsesImageURL(t *testing.T) {
+	itemMap := map[string]any{
+		"name":        "章魚燒",
+		"category":    "好吃的",
+		"price":       "100",
+		"stock":       "10",
+		"status":      "有現貨",
+		"description": "新鮮章魚哥",
+		"image_url":   "https://lh3.googleusercontent.com/example-image",
+	}
+
+	product, err := parseProduct(itemMap)
+	if err != nil {
+		t.Fatalf("parseProduct returned error: %v", err)
+	}
+
+	if product.ImageURL != "https://lh3.googleusercontent.com/example-image" {
+		t.Fatalf("expected image url to be parsed, got %q", product.ImageURL)
+	}
+}

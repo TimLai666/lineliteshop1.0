@@ -7,4 +7,5 @@ type Product struct {
 	Stock       int     `json:"stock"`
 	Status      string  `json:"status"`
 	Description string  `json:"description,omitempty"`
+	ImageURL    string  `json:"image_url,omitempty"`
 }

@@ -257,6 +257,15 @@ func parseProduct(itemMap map[string]any) (*models.Product, error) {
 		}
 	}
 
+	imageURL := ""
+	if imageVal, exists := itemMap["image_url"]; exists {
+		if image, ok := imageVal.(string); ok {
+			imageURL = image
+		} else {
+			return nil, errors.New("invalid image_url format in product data")
+		}
+	}
+
 	return &models.Product{
 		Name:        name,
 		Category:    category,
@@ -264,6 +273,7 @@ func parseProduct(itemMap map[string]any) (*models.Product, error) {
 		Stock:       stockInt,
 		Status:      status,
 		Description: description,
+		ImageURL:    imageURL,
 	}, nil
 }
 
