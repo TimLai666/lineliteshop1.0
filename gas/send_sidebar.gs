@@ -17,19 +17,20 @@ function getDistinctGroupValues(fieldName) {
 
   let values = [];
   if (colIndex !== -1) {
-    const col = colIndex + 1;
-    const data = customerSheet
-      .getRange(2, col, Math.max(0, customerSheet.getLastRow() - 1), 1)
+    const column = colIndex + 1;
+    values = customerSheet
+      .getRange(2, column, Math.max(0, customerSheet.getLastRow() - 1), 1)
       .getValues()
-      .flat();
-    values = data.filter((v) => v !== "" && v !== null).map(String);
+      .flat()
+      .filter((value) => value !== "" && value !== null)
+      .map(String);
   } else if (fieldName === "RFM會員類型" && typeof rfmSheet !== "undefined") {
     values = rfmSheet
       .getDataRange()
       .getValues()
       .slice(1)
       .map((row) => row[1])
-      .filter((v) => v !== "" && v !== null)
+      .filter((value) => value !== "" && value !== null)
       .map(String);
   } else if (fieldName === "CAI購買行為趨勢" && typeof caiSheet !== "undefined") {
     values = caiSheet
@@ -37,7 +38,7 @@ function getDistinctGroupValues(fieldName) {
       .getValues()
       .slice(1)
       .map((row) => row[1])
-      .filter((v) => v !== "" && v !== null)
+      .filter((value) => value !== "" && value !== null)
       .map(String);
   }
 
@@ -45,38 +46,14 @@ function getDistinctGroupValues(fieldName) {
 }
 
 function getLineRecipientField() {
-  return settings.line_recipient_field || settings.LINE_RECIPIENT_FIELD || "id";
+  return settings.line_recipient_field || settings.LINE_RECIPIENT_FIELD || "顧客 ID";
 }
 
-function findRecipientColumnIndex(header) {
-  const preferredField = getLineRecipientField();
-  const fieldKeyMap = {
-    id: "id",
-    phone: "phone",
-    email: "email",
-  };
-
-  if (fieldKeyMap[preferredField]) {
-    const mappedIndex = resolveCustomerColumnIndex(header, fieldKeyMap[preferredField]);
-    if (mappedIndex) {
-      return mappedIndex;
-    }
-  }
-
-  const aliases = [preferredField, "line_id", "lineId", "LINE_ID", "lineid", "line"];
-
-  for (let i = 0; i < aliases.length; i++) {
-    const idx = header.indexOf(aliases[i]);
-    if (idx !== -1) {
-      return idx + 1;
-    }
-  }
-
-  const fallbackFields = ["id", "phone", "email"];
-  for (let i = 0; i < fallbackFields.length; i++) {
-    const fallbackIndex = resolveCustomerColumnIndex(header, fallbackFields[i]);
-    if (fallbackIndex) {
-      return fallbackIndex;
+function findRecipientColumnIndex(headerRow) {
+  const preferredHeader = normalizeHeaderName(getLineRecipientField());
+  for (let i = 0; i < headerRow.length; i++) {
+    if (normalizeHeaderName(headerRow[i]) === preferredHeader) {
+      return i + 1;
     }
   }
 
@@ -90,14 +67,18 @@ function sendMessages(payload) {
     return { status: "error", message: "請至少選擇一個分群值" };
   }
 
-  const header = getCustomerHeaderRow();
-  const colIndex = header.indexOf(fieldName);
-  if (colIndex === -1) {
+  const headerRow = getCustomerHeaderRow();
+  const groupColumnIndex = headerRow.indexOf(fieldName);
+  if (groupColumnIndex === -1) {
     return { status: "error", message: `找不到欄位: ${fieldName}` };
   }
 
   const headerMap = getCustomerHeaderMap();
-  const recipientColumn = findRecipientColumnIndex(header);
+  const recipientColumnIndex = findRecipientColumnIndex(headerRow);
+  if (!recipientColumnIndex) {
+    return { status: "error", message: `找不到收件欄位: ${getLineRecipientField()}` };
+  }
+
   const rows = customerSheet
     .getRange(2, 1, Math.max(0, customerSheet.getLastRow() - 1), customerSheet.getLastColumn())
     .getValues();
@@ -105,20 +86,20 @@ function sendMessages(payload) {
   const results = [];
 
   rows.forEach((row) => {
-    const value = row[colIndex];
-    if (!value || groups.indexOf(String(value)) === -1) {
+    const groupValue = row[groupColumnIndex];
+    if (!groupValue || groups.indexOf(String(groupValue)) === -1) {
       return;
     }
 
     const customer = buildCustomerApiObjectFromRow(row, headerMap);
-    customer.recipient = recipientColumn ? row[recipientColumn - 1] : "";
+    customer.recipient = row[recipientColumnIndex - 1] || "";
 
-    const msg = expandTemplate(message, customer);
+    const expandedMessage = expandTemplate(message, customer);
 
     if (channel === "email") {
       if (!customer.email) {
         results.push({ id: customer.id, name: customer.name, status: "skipped", reason: "無電子郵件" });
-        appendSendLog(new Date(), channel, fieldName, value, customer, subject || "", msg, "skipped", "無電子郵件");
+        appendSendLog(new Date(), channel, fieldName, groupValue, customer, subject || "", expandedMessage, "skipped", "無電子郵件");
         return;
       }
 
@@ -126,13 +107,13 @@ function sendMessages(payload) {
         MailApp.sendEmail({
           to: customer.email,
           subject: subject || "行銷通知",
-          htmlBody: msg,
+          htmlBody: expandedMessage,
         });
         results.push({ id: customer.id, name: customer.name, status: "sent" });
-        appendSendLog(new Date(), channel, fieldName, value, customer, subject || "", msg, "sent", "");
+        appendSendLog(new Date(), channel, fieldName, groupValue, customer, subject || "", expandedMessage, "sent", "");
       } catch (error) {
         results.push({ id: customer.id, name: customer.name, status: "error", reason: error.message });
-        appendSendLog(new Date(), channel, fieldName, value, customer, subject || "", msg, "error", error.message);
+        appendSendLog(new Date(), channel, fieldName, groupValue, customer, subject || "", expandedMessage, "error", error.message);
       }
       return;
     }
@@ -141,47 +122,47 @@ function sendMessages(payload) {
       const backendToken = settings.token;
       if (!customer.recipient) {
         results.push({ id: customer.id, name: customer.name, status: "skipped", reason: "無法取得 LINE 收件者" });
-        appendSendLog(new Date(), channel, fieldName, value, customer, subject || "", msg, "skipped", "無法取得 LINE 收件者");
+        appendSendLog(new Date(), channel, fieldName, groupValue, customer, subject || "", expandedMessage, "skipped", "無法取得 LINE 收件者");
         return;
       }
 
       if (!backendToken) {
         results.push({ id: customer.id, name: customer.name, status: "skipped", reason: "未設定 token" });
-        appendSendLog(new Date(), channel, fieldName, value, customer, subject || "", msg, "skipped", "未設定 token");
+        appendSendLog(new Date(), channel, fieldName, groupValue, customer, subject || "", expandedMessage, "skipped", "未設定 token");
         return;
       }
 
       try {
-        const resp = UrlFetchApp.fetch(lineBackendUrl, {
+        const response = UrlFetchApp.fetch(lineBackendUrl, {
           method: "post",
           contentType: "application/json",
           headers: { Authorization: "Bearer " + backendToken },
           payload: JSON.stringify({
             userId: String(customer.recipient),
-            message: msg,
+            message: expandedMessage,
             notificationDisabled: false,
           }),
           muteHttpExceptions: true,
         });
 
-        const code = resp.getResponseCode();
-        const body = resp.getContentText();
-        if (code >= 200 && code < 300) {
-          results.push({ id: customer.id, name: customer.name, status: "sent", responseCode: code, responseBody: body });
-          appendSendLog(new Date(), channel, fieldName, value, customer, subject || "", msg, "sent", `code:${code}`);
+        const responseCode = response.getResponseCode();
+        const responseBody = response.getContentText();
+        if (responseCode >= 200 && responseCode < 300) {
+          results.push({ id: customer.id, name: customer.name, status: "sent", responseCode, responseBody });
+          appendSendLog(new Date(), channel, fieldName, groupValue, customer, subject || "", expandedMessage, "sent", `code:${responseCode}`);
         } else {
-          results.push({ id: customer.id, name: customer.name, status: "error", reason: `HTTP ${code}: ${body}` });
-          appendSendLog(new Date(), channel, fieldName, value, customer, subject || "", msg, "error", `HTTP ${code}: ${body}`);
+          results.push({ id: customer.id, name: customer.name, status: "error", reason: `HTTP ${responseCode}: ${responseBody}` });
+          appendSendLog(new Date(), channel, fieldName, groupValue, customer, subject || "", expandedMessage, "error", `HTTP ${responseCode}: ${responseBody}`);
         }
       } catch (error) {
         results.push({ id: customer.id, name: customer.name, status: "error", reason: error.message });
-        appendSendLog(new Date(), channel, fieldName, value, customer, subject || "", msg, "error", error.message);
+        appendSendLog(new Date(), channel, fieldName, groupValue, customer, subject || "", expandedMessage, "error", error.message);
       }
       return;
     }
 
     results.push({ id: customer.id, name: customer.name, status: "skipped", reason: "未知通道" });
-    appendSendLog(new Date(), channel, fieldName, value, customer, subject || "", msg, "skipped", "未知通道");
+    appendSendLog(new Date(), channel, fieldName, groupValue, customer, subject || "", expandedMessage, "skipped", "未知通道");
   });
 
   return { status: "success", results };
@@ -192,11 +173,11 @@ function expandTemplate(tpl, customer) {
     return "";
   }
 
-  let res = tpl;
-  res = res.replace(/{{\s*customerName\s*}}/gi, customer.name || "");
-  res = res.replace(/{{\s*customerEmail\s*}}/gi, customer.email || "");
-  res = res.replace(/{{\s*customerPhone\s*}}/gi, customer.phone || "");
-  return res;
+  let result = tpl;
+  result = result.replace(/{{\s*customerName\s*}}/gi, customer.name || "");
+  result = result.replace(/{{\s*customerEmail\s*}}/gi, customer.email || "");
+  result = result.replace(/{{\s*customerPhone\s*}}/gi, customer.phone || "");
+  return result;
 }
 
 function appendSendLog(time, channel, field, groupValue, customer, subject, message, status, note) {
@@ -211,7 +192,7 @@ function appendSendLog(time, channel, field, groupValue, customer, subject, mess
 
   const target = channel === "email"
     ? customer.email || ""
-    : customer.recipient || customer.id || customer.phone || "";
+    : customer.recipient || "";
 
   sheet.appendRow([time, channel, field, groupValue, customer.id, customer.name, target, status, note || ""]);
 }

@@ -1,14 +1,14 @@
-const CUSTOMER_FIELD_ALIASES = {
-  id: ["顧客ID", "顧客 ID", "ID", "id"],
-  name: ["姓名", "name", "Name"],
-  birthday: ["生日", "birthday", "Birthday"],
-  phone: ["電話", "phone", "Phone"],
-  email: ["Email", "email", "電子郵件", "電子郵件地址"],
-  occupation: ["職業", "occupation", "Occupation"],
-  gender: ["性別", "gender", "Gender"],
-  income_range: ["月收入區間", "income_range", "incomeRange", "Income Range"],
-  household_size: ["同住人口數", "household_size", "householdSize", "Household Size"],
-  note: ["附註", "備註", "note", "Note"],
+const CUSTOMER_FIELD_HEADERS = {
+  id: "顧客 ID",
+  name: "姓名",
+  birthday: "生日",
+  phone: "電話",
+  email: "Email",
+  occupation: "職業",
+  gender: "性別",
+  income_range: "月收入區間",
+  household_size: "同住人口數",
+  note: "附註",
 };
 
 const REQUIRED_CUSTOMER_FIELDS = ["id", "name", "birthday", "phone", "email"];
@@ -22,17 +22,22 @@ function getCustomerHeaderRow() {
   if (lastColumn < 1) {
     throw new Error("顧客工作表缺少標題列");
   }
+
   return customerSheet.getRange(1, 1, 1, lastColumn).getValues()[0];
 }
 
 function resolveCustomerColumnIndex(headerRow, fieldKey) {
-  const aliases = CUSTOMER_FIELD_ALIASES[fieldKey] || [fieldKey];
+  const expectedHeader = CUSTOMER_FIELD_HEADERS[fieldKey];
+  if (!expectedHeader) {
+    return null;
+  }
+
   for (let i = 0; i < headerRow.length; i++) {
-    const headerName = normalizeHeaderName(headerRow[i]);
-    if (aliases.indexOf(headerName) !== -1) {
+    if (normalizeHeaderName(headerRow[i]) === expectedHeader) {
       return i + 1;
     }
   }
+
   return null;
 }
 
@@ -40,7 +45,7 @@ function getCustomerHeaderMap(requiredFields) {
   const headerRow = getCustomerHeaderRow();
   const headerMap = {};
 
-  Object.keys(CUSTOMER_FIELD_ALIASES).forEach((fieldKey) => {
+  Object.keys(CUSTOMER_FIELD_HEADERS).forEach((fieldKey) => {
     const columnIndex = resolveCustomerColumnIndex(headerRow, fieldKey);
     if (columnIndex) {
       headerMap[fieldKey] = columnIndex;
@@ -49,8 +54,7 @@ function getCustomerHeaderMap(requiredFields) {
 
   (requiredFields || REQUIRED_CUSTOMER_FIELDS).forEach((fieldKey) => {
     if (!headerMap[fieldKey]) {
-      const aliases = CUSTOMER_FIELD_ALIASES[fieldKey] || [fieldKey];
-      throw new Error(`顧客工作表缺少必要欄位: ${aliases[0]}`);
+      throw new Error(`顧客工作表缺少必要欄位: ${CUSTOMER_FIELD_HEADERS[fieldKey]}`);
     }
   });
 
@@ -60,7 +64,8 @@ function getCustomerHeaderMap(requiredFields) {
 
 function buildCustomerObjectFromRow(row, headerMap) {
   const customer = {};
-  Object.keys(CUSTOMER_FIELD_ALIASES).forEach((fieldKey) => {
+
+  Object.keys(CUSTOMER_FIELD_HEADERS).forEach((fieldKey) => {
     const columnIndex = headerMap[fieldKey];
     customer[fieldKey] = columnIndex ? row[columnIndex - 1] : "";
   });
