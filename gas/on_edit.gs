@@ -1,12 +1,13 @@
 function onEdit(e) {
+  if (!e || !e.range || !e.source) {
+    return;
+  }
+
   const sheet = e.source.getActiveSheet();
   const sheetName = sheet.getName();
   const col = e.range.getColumn();
   const row = e.range.getRow();
-  let value;
-  if (row > 1) {
-    value = e.range.getValue();
-  }
+  const value = row > 1 ? e.range.getValue() : null;
 
   // todo: 根據工作表名稱和欄位值進行處理
   switch (sheetName) {
@@ -62,6 +63,10 @@ function onEdit(e) {
           sheet.getRange(row, productHeaderMap.stock).setValue(0);
           sheet.getRange(row, productHeaderMap.status).setValue('下架');
         }
+      } else if (col === productHeaderMap.stock && row > 1) {
+        withInventoryLock(() => {
+          applyProductStockStatusRule(row, productHeaderMap);
+        });
       } else if ((col === productHeaderMap.category || col === productHeaderMap.status) && row > 1) {
         // **商品名稱不為空時，才能設定類別或狀態**
 
@@ -115,7 +120,51 @@ function onEdit(e) {
       }
       break;
     }
-    case '訂單':
+    case '訂單': {
+      const orderHeaderMap = getOrderHeaderMap(["status"]);
+      const isSingleCellEdit = e.range.getNumRows() === 1 && e.range.getNumColumns() === 1;
+
+      if (row <= 1 || col !== orderHeaderMap.status) {
+        break;
+      }
+
+      if (!isSingleCellEdit || !Object.prototype.hasOwnProperty.call(e, "oldValue")) {
+        SpreadsheetApp.getUi().alert(
+          '提醒',
+          '批次貼上或沒有舊狀態的編輯不會自動同步庫存，請立即 Undo 後逐筆修改。',
+          SpreadsheetApp.getUi().ButtonSet.OK,
+        );
+        break;
+      }
+
+      const previousStatus = e.oldValue;
+      const nextStatus = e.value !== undefined ? e.value : value;
+      const normalizedNextStatus = normalizeApiOrderStatus(nextStatus);
+
+      if (!normalizedNextStatus) {
+        e.range.setValue(previousStatus || '');
+        SpreadsheetApp.getUi().alert(
+          '錯誤',
+          '訂單狀態不合法，請使用「待處理 / 進行中 / 已完成 / 取消」。',
+          SpreadsheetApp.getUi().ButtonSet.OK,
+        );
+        break;
+      }
+
+      try {
+        withInventoryLock(() => {
+          const transitionResult = applyOrderStatusTransition(row, previousStatus, nextStatus);
+          e.range.setValue(transitionResult.nextSheetStatus);
+        });
+      } catch (error) {
+        e.range.setValue(previousStatus || '');
+        SpreadsheetApp.getUi().alert(
+          '錯誤',
+          error.message,
+          SpreadsheetApp.getUi().ButtonSet.OK,
+        );
+      }
       break;
+    }
   }
 }

@@ -20,7 +20,7 @@ var (
 func init() {
 	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Printf("Warning: unable to load .env file: %v", err)
 	}
 
 	LINE_CHANNEL_TOKEN = os.Getenv("LINE_CHANNEL_TOKEN")

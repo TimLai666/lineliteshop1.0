@@ -69,6 +69,105 @@ function validateCustomerPayload(customer, isUpdate) {
   return null;
 }
 
+function createJsonResponse(payload) {
+  return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(
+    ContentService.MimeType.JSON,
+  );
+}
+
+function createErrorResponse(message) {
+  return createJsonResponse({
+    status: "error",
+    message: message,
+  });
+}
+
+function createSuccessResponse(payload) {
+  return createJsonResponse(
+    Object.assign(
+      {
+        status: "success",
+      },
+      payload || {},
+    ),
+  );
+}
+
+function getNextOrderId() {
+  let maxId = 0;
+  const headerMap = getOrderHeaderMap(["id"]);
+  const lastRow = orderSheet.getLastRow();
+
+  if (lastRow <= 1) {
+    return 1;
+  }
+
+  const idRange = orderSheet
+    .getRange(2, headerMap.id, lastRow - 1, 1)
+    .getValues();
+
+  idRange.forEach((row) => {
+    const currentId = parseInt(row[0], 10);
+    if (!isNaN(currentId) && currentId > maxId) {
+      maxId = currentId;
+    }
+  });
+
+  return maxId + 1;
+}
+
+function applyOrderRowTemplate(newRow, previousLastRow) {
+  const maxColumns = orderSheet.getLastColumn();
+
+  if (previousLastRow > 1) {
+    const sourceRow = 3;
+    const currentLastRow = orderSheet.getLastRow();
+
+    if (currentLastRow >= sourceRow) {
+      const sourceRange = orderSheet.getRange(sourceRow, 1, 1, maxColumns);
+      const formulas = sourceRange.getFormulas()[0];
+
+      formulas.forEach((formula, index) => {
+        if (formula) {
+          orderSheet.getRange(newRow, index + 1).setFormula(formula);
+        }
+      });
+
+      const formatColumns = maxColumns - 1;
+      if (formatColumns > 0) {
+        const targetFormatRange = orderSheet.getRange(newRow, 1, 1, formatColumns);
+        const sourceFormatRange = orderSheet.getRange(sourceRow, 1, 1, formatColumns);
+        targetFormatRange.setBackgrounds(sourceFormatRange.getBackgrounds());
+        targetFormatRange.setFontColors(sourceFormatRange.getFontColors());
+        targetFormatRange.setFontFamilies(sourceFormatRange.getFontFamilies());
+        targetFormatRange.setFontSizes(sourceFormatRange.getFontSizes());
+        targetFormatRange.setFontWeights(sourceFormatRange.getFontWeights());
+        targetFormatRange.setFontStyles(sourceFormatRange.getFontStyles());
+        targetFormatRange.setHorizontalAlignments(
+          sourceFormatRange.getHorizontalAlignments(),
+        );
+        targetFormatRange.setVerticalAlignments(
+          sourceFormatRange.getVerticalAlignments(),
+        );
+        targetFormatRange.setWraps(sourceFormatRange.getWraps());
+      }
+      return;
+    }
+  }
+
+  const formatColumns = maxColumns - 1;
+  if (formatColumns > 0) {
+    const headerRange = orderSheet.getRange(1, 1, 1, formatColumns);
+    const targetRange = orderSheet.getRange(newRow, 1, 1, formatColumns);
+    targetRange.setFontFamilies(headerRange.getFontFamilies());
+    targetRange.setFontSizes(headerRange.getFontSizes());
+    targetRange.setHorizontalAlignments(headerRange.getHorizontalAlignments());
+    targetRange.setVerticalAlignments(headerRange.getVerticalAlignments());
+    targetRange.setBackgrounds(headerRange.getBackgrounds());
+    targetRange.setFontColors(headerRange.getFontColors());
+  }
+}
+
 function addCustomer(data) {
   const customer = data.customer || {};
   const validationMessage = validateCustomerPayload(customer, false);
@@ -136,141 +235,111 @@ function updateCustomer(data) {
 }
 
 function addOrder(data) {
-  const order = data.order;
-  const sheet = orderSheet;
+  const order = data.order || {};
 
-  const validationResult = validateProductsAndCalculateTotal(order.products);
-  if (!validationResult.isValid) {
-    return ContentService.createTextOutput(
-      JSON.stringify({
-        status: "error",
-        message: validationResult.errorMessage,
-      }),
-    ).setMimeType(ContentService.MimeType.JSON);
-  }
-
-  const customerValidation = checkCustomerExists(order.customer_id);
-  if (!customerValidation.exists) {
-    return ContentService.createTextOutput(
-      JSON.stringify({
-        status: "error",
-        message: customerValidation.errorMessage,
-      }),
-    ).setMimeType(ContentService.MimeType.JSON);
-  }
-
-  const totalAmount = validationResult.totalAmount;
-
-  let maxId = 0;
-  const lastRow = sheet.getLastRow();
-  if (lastRow > 1) {
-    const idRange = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-    for (let i = 0; i < idRange.length; i++) {
-      const currentId = parseInt(idRange[i][0], 10);
-      if (!isNaN(currentId) && currentId > maxId) {
-        maxId = currentId;
+  try {
+    return withInventoryLock(() => {
+      const customerValidation = checkCustomerExists(order.customer_id);
+      if (!customerValidation.exists) {
+        return createErrorResponse(customerValidation.errorMessage);
       }
-    }
-  }
-  const newOrderId = data.order.id || maxId + 1;
 
-  sheet.insertRowAfter(1);
-  const newRow = 2;
+      let inventoryResult = null;
+      let insertedRow = null;
 
-  const products = order.products
-    .map((item) => `${item.product}*${item.quantity}`)
-    .join(", ");
+      try {
+        inventoryResult = validateAndReserveInventory(order.products);
 
-  sheet
-    .getRange(newRow, 1, 1, 3)
-    .setValues([[newOrderId, products, order.customer_id]]);
+        const headerMap = getOrderHeaderMap();
+        const previousLastRow = orderSheet.getLastRow();
+        const newOrderId = order.id || getNextOrderId();
 
-  const orderData = [
-    "待處理",
-    new Date(),
-    totalAmount,
-    order.customer_note,
-  ];
-  sheet.getRange(newRow, 5, 1, 4).setValues([orderData]);
+        orderSheet.insertRowAfter(1);
+        insertedRow = 2;
 
-  if (lastRow > 1) {
-    const sourceRow = 3;
-    const maxColumns = sheet.getLastColumn();
-    const currentLastRow = sheet.getLastRow();
-    if (currentLastRow >= sourceRow) {
-      const sourceRange = sheet.getRange(sourceRow, 1, 1, maxColumns);
-      const formulas = sourceRange.getFormulas()[0];
-      for (let col = 0; col < formulas.length; col++) {
-        if (formulas[col]) {
-          sheet.getRange(newRow, col + 1).setFormula(formulas[col]);
+        applyOrderRowTemplate(insertedRow, previousLastRow);
+        writeOrderFields(
+          insertedRow,
+          {
+            id: newOrderId,
+            products: inventoryResult.items,
+            customer_id: order.customer_id,
+            status: SHEET_ORDER_STATUS_PENDING,
+            time: new Date(),
+            total_amount: inventoryResult.totalAmount,
+            customer_note: order.customer_note || "",
+            internal_note: order.internal_note || "",
+          },
+          headerMap,
+          true,
+        );
+
+        return createSuccessResponse();
+      } catch (error) {
+        if (insertedRow) {
+          orderSheet.deleteRow(insertedRow);
         }
-      }
 
-      const formatColumns = maxColumns - 1;
-      if (formatColumns > 0) {
-        const targetFormatRange = sheet.getRange(newRow, 1, 1, formatColumns);
-        const sourceFormatRange = sheet.getRange(sourceRow, 1, 1, formatColumns);
-        targetFormatRange.setBackgrounds(sourceFormatRange.getBackgrounds());
-        targetFormatRange.setFontColors(sourceFormatRange.getFontColors());
-        targetFormatRange.setFontFamilies(sourceFormatRange.getFontFamilies());
-        targetFormatRange.setFontSizes(sourceFormatRange.getFontSizes());
-        targetFormatRange.setFontWeights(sourceFormatRange.getFontWeights());
-        targetFormatRange.setFontStyles(sourceFormatRange.getFontStyles());
-        targetFormatRange.setHorizontalAlignments(
-          sourceFormatRange.getHorizontalAlignments(),
-        );
-        targetFormatRange.setVerticalAlignments(
-          sourceFormatRange.getVerticalAlignments(),
-        );
-        targetFormatRange.setWraps(sourceFormatRange.getWraps());
-      }
-    }
-  } else {
-    const maxColumns = sheet.getLastColumn();
-    const formatColumns = maxColumns - 1;
+        if (inventoryResult && inventoryResult.journal && inventoryResult.journal.length > 0) {
+          restoreInventoryMutations(inventoryResult.journal);
+        }
 
-    if (formatColumns > 0) {
-      const headerRange = sheet.getRange(1, 1, 1, formatColumns);
-      const targetRange = sheet.getRange(newRow, 1, 1, formatColumns);
-      targetRange.setFontFamilies(headerRange.getFontFamilies());
-      targetRange.setFontSizes(headerRange.getFontSizes());
-      targetRange.setHorizontalAlignments(headerRange.getHorizontalAlignments());
-      targetRange.setVerticalAlignments(headerRange.getVerticalAlignments());
-      targetRange.setBackgrounds(headerRange.getBackgrounds());
-      targetRange.setFontColors(headerRange.getFontColors());
-    }
+        return createErrorResponse(error.message);
+      }
+    });
+  } catch (error) {
+    return createErrorResponse(error.message);
   }
-
-  return ContentService.createTextOutput(
-    JSON.stringify({ status: "success" }),
-  ).setMimeType(ContentService.MimeType.JSON);
 }
 
 function updateOrder(data) {
-  const order = data.order;
-  const rowToUpdate = findOrderRow(order.id);
-  if (!order.id || rowToUpdate === -1) {
-    return ContentService.createTextOutput(
-      JSON.stringify({
-        status: "error",
-        message: "訂單不存在或缺少訂單ID",
-      }),
-    ).setMimeType(ContentService.MimeType.JSON);
-  }
+  const order = data.order || {};
 
-  if (order.status) {
-    orderSheet.getRange(rowToUpdate, 5).setValue(order.status);
-  }
+  try {
+    return withInventoryLock(() => {
+      const rowToUpdate = findOrderRow(order.id);
+      if (!order.id || rowToUpdate === -1) {
+        return createErrorResponse("訂單不存在或缺少訂單ID");
+      }
 
-  if (order.total_amount) {
-    orderSheet.getRange(rowToUpdate, 7).setValue(order.total_amount);
-  }
+      const headerMap = getOrderHeaderMap();
+      const existingOrder = getOrderByRow(rowToUpdate, headerMap);
+      let transitionResult = null;
 
-  if (order.internal_note) {
-    orderSheet.getRange(rowToUpdate, 9).setValue(order.internal_note);
-  }
+      try {
+        const updates = {};
 
-  return ContentService.createTextOutput(
-    JSON.stringify({ status: "success" }),
-  ).setMimeType(ContentService.MimeType.JSON);
+        if (Object.prototype.hasOwnProperty.call(order, "status")) {
+          transitionResult = applyOrderStatusTransition(
+            existingOrder,
+            existingOrder.status,
+            order.status,
+          );
+          updates.status = transitionResult.nextSheetStatus;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(order, "total_amount")) {
+          updates.total_amount = order.total_amount;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(order, "internal_note")) {
+          updates.internal_note = order.internal_note || "";
+        }
+
+        if (Object.keys(updates).length > 0) {
+          writeOrderFields(rowToUpdate, updates, headerMap, true);
+        }
+
+        return createSuccessResponse();
+      } catch (error) {
+        if (transitionResult && transitionResult.journal && transitionResult.journal.length > 0) {
+          restoreInventoryMutations(transitionResult.journal);
+        }
+
+        return createErrorResponse(error.message);
+      }
+    });
+  } catch (error) {
+    return createErrorResponse(error.message);
+  }
 }

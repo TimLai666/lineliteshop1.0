@@ -60,12 +60,15 @@ func AddOrder(order models.Order) (uint, error) {
 	// 產生基於時間戳的簡短ID
 	orderId := generateShortID()
 	order.ID = orderId
+	order.Status = normalizeOutgoingOrderStatus(order.Status)
 
 	// 呼叫 Google Sheet API 來新增訂單資料
 	return orderId, callPostApi("ADD_ORDER", order)
 }
 
 func UpdateOrder(order models.Order) error {
+	order.Status = normalizeOutgoingOrderStatus(order.Status)
+
 	// 呼叫 Google Sheet API 來更新訂單資料
 	return callPostApi("UPDATE_ORDER", order)
 }

@@ -215,14 +215,44 @@ const cancelReason = ref('')
 const cancelling = ref(false)
 const alertMessage = ref(null)
 
+const STATUS_LABELS = {
+    pending: '待處理',
+    in_progress: '進行中',
+    completed: '已完成',
+    cancelled: '取消',
+}
+
+const LEGACY_STATUS_MAP = {
+    pending: 'pending',
+    '待處理': 'pending',
+    confirmed: 'in_progress',
+    preparing: 'in_progress',
+    in_progress: 'in_progress',
+    '進行中': 'in_progress',
+    '已確認': 'in_progress',
+    '製作中': 'in_progress',
+    completed: 'completed',
+    delivered: 'completed',
+    '已完成': 'completed',
+    '已送達': 'completed',
+    cancelled: 'cancelled',
+    '取消': 'cancelled',
+    '已取消': 'cancelled',
+}
+
 // 訂單狀態選項
 const orderStatuses = ref([
     { value: 'all', label: '全部' },
-    { value: '待處理', label: '待處理' },
-    { value: '進行中', label: '製作中' },
-    { value: '已完成', label: '已完成' },
-    { value: '取消', label: '已取消' }
+    { value: 'pending', label: '待處理' },
+    { value: 'in_progress', label: '進行中' },
+    { value: 'completed', label: '已完成' },
+    { value: 'cancelled', label: '取消' }
 ])
+
+const normalizeOrderStatus = (status) => {
+    const trimmed = (status || '').toString().trim()
+    return LEGACY_STATUS_MAP[trimmed] || trimmed
+}
 
 // 計算屬性
 const filteredOrders = computed(() => {
@@ -232,7 +262,7 @@ const filteredOrders = computed(() => {
 
     // 對狀態進行標準化比較（去除空格，統一格式）
     return orders.value.filter(order => {
-        const orderStatus = (order.status || '').toString().trim()
+        const orderStatus = normalizeOrderStatus(order.status)
         const selected = selectedStatus.value.trim()
 
         // 調試信息
@@ -267,9 +297,9 @@ const loadOrders = async () => {
                 ...order,
                 orderId: order.id, // 將 id 映射為 orderId
                 items: order.products || [], // 將 products 映射為 items
-                totalAmount: order.total_amount, // 使用後端返回的總金額
+                totalAmount: order.total_amount ?? order.totalAmount ?? 0, // 使用後端返回的總金額
                 orderTime: order.time, // 訂單時間
-                status: (order.status || '').toString().trim() // 標準化狀態值
+                status: normalizeOrderStatus(order.status) // 標準化狀態值
             })).sort((a, b) => {
                 const ta = a.orderTime ? new Date(a.orderTime).getTime() : 0
                 const tb = b.orderTime ? new Date(b.orderTime).getTime() : 0
@@ -280,8 +310,9 @@ const loadOrders = async () => {
                 ...order,
                 orderId: order.id,
                 items: order.products || [],
-                totalAmount: order.totalAmount,
-                orderTime: order.time
+                totalAmount: order.total_amount ?? order.totalAmount ?? 0,
+                orderTime: order.time,
+                status: normalizeOrderStatus(order.status)
             })).sort((a, b) => {
                 const ta = a.orderTime ? new Date(a.orderTime).getTime() : 0
                 const tb = b.orderTime ? new Date(b.orderTime).getTime() : 0
@@ -401,40 +432,35 @@ const formatDateTime = (dateString) => {
 }
 
 const getStatusText = (status) => {
-    // 標準化狀態值（去除空格）
-    const normalizedStatus = (status || '').toString().trim()
-    return normalizedStatus || '未知狀態'
+    const normalizedStatus = normalizeOrderStatus(status)
+    return STATUS_LABELS[normalizedStatus] || normalizedStatus || '未知狀態'
 }
 
 const getStatusClass = (status) => {
-    // 標準化狀態值
-    const normalizedStatus = (status || '').toString().trim()
+    const normalizedStatus = normalizeOrderStatus(status)
 
-    // 根據中文狀態返回對應的 CSS 類
     const classMap = {
-        '待處理': 'status-pending',
-        '已確認': 'status-confirmed',
-        '製作中': 'status-preparing',
-        '已完成': 'status-ready',
-        '已送達': 'status-delivered',
-        '已取消': 'status-cancelled'
+        pending: 'status-pending',
+        in_progress: 'status-preparing',
+        completed: 'status-ready',
+        cancelled: 'status-cancelled'
     }
     return classMap[normalizedStatus] || 'status-pending'
 }
 
 const getStatusLabel = (status) => {
     const statusObj = orderStatuses.value.find(s => s.value === status)
-    return statusObj ? statusObj.label : status
+    return statusObj ? statusObj.label : getStatusText(status)
 }
 
 const canCancelOrder = (status) => {
-    const normalizedStatus = (status || '').toString().trim()
-    return ['待處理', '已確認'].includes(normalizedStatus)
+    const normalizedStatus = normalizeOrderStatus(status)
+    return ['pending', 'in_progress'].includes(normalizedStatus)
 }
 
 const canReorder = (status) => {
-    const normalizedStatus = (status || '').toString().trim()
-    return ['已完成', '已送達', '已取消'].includes(normalizedStatus)
+    const normalizedStatus = normalizeOrderStatus(status)
+    return ['completed', 'cancelled'].includes(normalizedStatus)
 }
 
 const showAlert = (message, type = 'info') => {
