@@ -3,42 +3,54 @@
         <div class="register-card">
             <h2>用戶註冊</h2>
 
-            <LoadingSpinner v-if="!isReady" message="等待 LINE 服務初始化..." />
+            <LoadingSpinner v-if="!isReady" message="正在初始化 LINE 登入..." />
 
             <div v-else-if="!isLoggedIn" class="login-required">
                 <div class="icon">🔐</div>
-                <h3>需要登入 LINE</h3>
-                <p>請先登入您的 LINE 帳號以繼續註冊</p>
+                <h3>請先登入 LINE</h3>
+                <p>請先登入您的 LINE 帳號以繼續註冊。</p>
                 <button @click="handleLogin" class="login-btn">登入 LINE</button>
             </div>
 
-            <LoadingSpinner v-else-if="!profile" message="正在獲取用戶資訊..." />
+            <LoadingSpinner v-else-if="!profile" message="正在取得用戶資料..." />
 
-            <LoadingSpinner v-else-if="isCheckingUser" message="正在檢查用戶狀態..." />
+            <LoadingSpinner v-else-if="isCheckingUser" message="正在檢查註冊狀態..." />
 
             <div v-else-if="userExists" class="user-exists">
                 <div class="icon">✅</div>
-                <h3>您已經是我們的會員了！</h3>
-                <p>檢測到您已經註冊過，正在為您跳轉到點餐頁面...</p>
+                <h3>已經註冊過了</h3>
+                <p>系統偵測到您已完成註冊，正在為您跳轉到點餐頁面...</p>
             </div>
 
             <div v-else class="profile-info">
                 <UserProfileCard :profile="profile" />
 
                 <div class="info-notice">
-                    <p>📝 請填寫以下資訊完成註冊</p>
-                    <small>* LINE 不提供手機號碼、生日等資訊，需要您手動填寫</small>
+                    <p>請填寫以下資訊完成註冊</p>
+                    <small>* LINE 顯示名稱會作為會員姓名帶入，仍可在後台再調整</small>
                 </div>
 
                 <form @submit.prevent="handleRegister" class="register-form">
                     <div class="form-group">
                         <label for="phone">手機號碼: <span class="required">*</span></label>
-                        <input type="tel" id="phone" v-model="registerData.phone" placeholder="請輸入手機號碼" required />
+                        <input
+                            type="tel"
+                            id="phone"
+                            v-model="registerData.phone"
+                            placeholder="請輸入手機號碼"
+                            required
+                        />
                     </div>
 
                     <div class="form-group">
                         <label for="email">電子郵件: <span class="required">*</span></label>
-                        <input type="email" id="email" v-model="registerData.email" placeholder="請輸入電子郵件" required />
+                        <input
+                            type="email"
+                            id="email"
+                            v-model="registerData.email"
+                            placeholder="請輸入電子郵件"
+                            required
+                        />
                     </div>
 
                     <div class="form-group">
@@ -46,92 +58,132 @@
                         <input type="date" id="birthday" v-model="registerData.birthday" />
                     </div>
 
+                    <div class="form-group">
+                        <label for="occupation">職業:</label>
+                        <input
+                            type="text"
+                            id="occupation"
+                            v-model="registerData.occupation"
+                            placeholder="請輸入職業"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">性別:</label>
+                        <select id="gender" v-model="registerData.gender">
+                            <option value="">請選擇性別</option>
+                            <option v-for="option in genderOptions" :key="option" :value="option">
+                                {{ option }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="incomeRange">月收入區間:</label>
+                        <select id="incomeRange" v-model="registerData.incomeRange">
+                            <option value="">請選擇月收入區間</option>
+                            <option v-for="option in incomeRangeOptions" :key="option" :value="option">
+                                {{ option }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="householdSize">同住人口數:</label>
+                        <select id="householdSize" v-model="registerData.householdSize">
+                            <option value="">請選擇同住人口數</option>
+                            <option v-for="option in householdSizeOptions" :key="option" :value="option">
+                                {{ option }}
+                            </option>
+                        </select>
+                    </div>
+
                     <button type="submit" :disabled="isRegistering" class="register-btn">
                         {{ isRegistering ? '註冊中...' : '完成註冊' }}
                     </button>
                 </form>
 
-                <MessageAlert v-if="registerResult" :message="registerResult.message" :type="registerResult.type"
-                    :visible="true" />
+                <MessageAlert
+                    v-if="registerResult"
+                    :message="registerResult.message"
+                    :type="registerResult.type"
+                    :visible="true"
+                />
             </div>
-
-            <!-- 調試面板 -->
-            <!-- <LiffDebugPanel /> -->
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import UserProfileCard from '../components/UserProfileCard.vue'
 import LoadingSpinner from '../components/LoadingSpinner.vue'
 import MessageAlert from '../components/MessageAlert.vue'
-import LiffDebugPanel from '../components/LiffDebugPanel.vue'
-import { userApi, handleApiError } from '../services/index.js'
+import UserProfileCard from '../components/UserProfileCard.vue'
 import { useLiff } from '../composables/useLiff.js'
+import { handleApiError, userApi } from '../services/index.js'
 
-// 路由
 const router = useRouter()
 
-// 使用全局 LIFF 狀態
 const {
     isReady,
     isLoggedIn,
     profile,
-    closeLiff,
-    loginLiff
+    loginLiff,
 } = useLiff()
 
-// 組件狀態
 const isRegistering = ref(false)
 const registerResult = ref(null)
 const isCheckingUser = ref(false)
 const userExists = ref(false)
 
-const registerData = ref({
+const genderOptions = ['男', '女', '非二元', '不透露']
+const incomeRangeOptions = [
+    '未滿30,000',
+    '30,000-49,999',
+    '50,000-69,999',
+    '70,000-99,999',
+    '100,000以上',
+    '不透露',
+]
+const householdSizeOptions = ['1人', '2人', '3人', '4人', '5人以上']
+
+const createInitialRegisterData = () => ({
     phone: '',
     email: '',
     birthday: '',
-    address: ''
+    occupation: '',
+    gender: '',
+    incomeRange: '',
+    householdSize: '',
 })
 
-// 檢查用戶是否已存在
+const registerData = ref(createInitialRegisterData())
+
+const redirectToNextPage = async () => {
+    const redirectPath = router.currentRoute.value.query.redirect || '/order'
+    try {
+        await router.push(redirectPath)
+    } catch (error) {
+        console.error('路由跳轉失敗:', error)
+        await router.push({ name: 'OrderFood' })
+    }
+}
+
 const checkUserExists = async (userId) => {
     isCheckingUser.value = true
     try {
-        console.log('正在檢查用戶是否已存在:', userId)
         const userData = await userApi.getUserProfile(userId)
-
-        if (userData) {
-            console.log('用戶已存在:', userData)
-            userExists.value = true
-
-            // 用戶已存在，跳轉到記錄的頁面或預設點餐頁面
-            const redirectPath = router.currentRoute.value.query.redirect || '/order'
-            console.log('用戶已存在，開始跳轉到:', redirectPath)
-            try {
-                await router.push(redirectPath)
-                console.log('跳轉成功')
-            } catch (error) {
-                console.error('跳轉失敗:', error)
-                // 如果跳轉失敗，嘗試跳轉到點餐頁面
-                try {
-                    await router.push({ name: 'OrderFood' })
-                    console.log('跳轉到預設頁面成功')
-                } catch (secondError) {
-                    console.error('跳轉到預設頁面也失敗:', secondError)
-                }
-            }
-
-            return true
-        } else {
-            console.log('用戶不存在，可以繼續註冊')
+        if (!userData) {
             userExists.value = false
             return false
         }
+
+        userExists.value = true
+        await redirectToNextPage()
+        return true
     } catch (error) {
-        console.log('檢查用戶狀態失敗，用戶可能不存在:', error)
+        console.log('檢查註冊狀態失敗，視為尚未註冊:', error)
         userExists.value = false
         return false
     } finally {
@@ -139,41 +191,33 @@ const checkUserExists = async (userId) => {
     }
 }
 
-// 監聽 profile 變化，當獲取到用戶資料時檢查是否已存在
-watch(profile, async (newProfile) => {
-    if (newProfile && newProfile.userId) {
-        await checkUserExists(newProfile.userId)
-    }
-}, { immediate: true })
+watch(
+    profile,
+    async (newProfile) => {
+        if (newProfile?.userId) {
+            await checkUserExists(newProfile.userId)
+        }
+    },
+    { immediate: true },
+)
 
-// 處理登入
 const handleLogin = () => {
     if (!isLoggedIn.value) {
         loginLiff()
     }
 }
 
-// 組件掛載時的處理
 onMounted(() => {
-    console.log('UserRegister 組件已掛載')
-    console.log('LIFF 狀態:', {
-        isReady: isReady.value,
-        isLoggedIn: isLoggedIn.value,
-        hasProfile: !!profile.value
-    })
-
-    // 如果已經有 profile，立即檢查用戶狀態
-    if (profile.value && profile.value.userId) {
+    if (profile.value?.userId) {
         checkUserExists(profile.value.userId)
     }
 })
 
-// 處理註冊
 const handleRegister = async () => {
     if (!profile.value) {
         registerResult.value = {
             type: 'error',
-            message: '無法獲取用戶資訊，請重新整理頁面'
+            message: '無法取得 LINE 用戶資料，請重新登入後再試。',
         }
         return
     }
@@ -182,67 +226,36 @@ const handleRegister = async () => {
     registerResult.value = null
 
     try {
-        // 準備註冊資料
         const registrationData = {
             lineUserId: profile.value.userId,
-            name: profile.value.displayName, // 改為 name 以符合 userService 的期望
+            name: profile.value.displayName,
             pictureUrl: profile.value.pictureUrl,
             statusMessage: profile.value.statusMessage,
             phone: registerData.value.phone,
             email: registerData.value.email,
             birthday: registerData.value.birthday,
-            address: registerData.value.address,
-            registeredAt: new Date().toISOString()
+            occupation: registerData.value.occupation,
+            gender: registerData.value.gender,
+            incomeRange: registerData.value.incomeRange,
+            householdSize: registerData.value.householdSize,
+            registeredAt: new Date().toISOString(),
         }
 
-        console.log('Registration data:', registrationData)
+        await userApi.register(registrationData)
 
-        // 使用 API 服務進行註冊
-        const response = await userApi.register(registrationData)
-
-        console.log('註冊成功:', response)
-
-        // 標記用戶已註冊，避免路由守衛攔截
         userExists.value = true
-
         registerResult.value = {
             type: 'success',
-            message: '註冊成功！正在為您跳轉...'
+            message: '註冊成功，正在為您跳轉...',
         }
 
-        // 重置表單
-        registerData.value = {
-            phone: '',
-            email: '',
-            birthday: '',
-            address: ''
-        }
-
-        // 註冊成功後，跳轉到記錄的頁面或預設點餐頁面
-        const redirectPath = router.currentRoute.value.query.redirect || '/order'
-        console.log('開始跳轉到:', redirectPath)
-        try {
-            await router.push(redirectPath)
-            console.log('跳轉成功')
-        } catch (error) {
-            console.error('跳轉失敗:', error)
-            // 如果跳轉失敗，可能是路由守衛攔截，嘗試跳轉到點餐頁面
-            try {
-                await router.push({ name: 'OrderFood' })
-                console.log('跳轉到預設頁面成功')
-            } catch (secondError) {
-                console.error('跳轉到預設頁面也失敗:', secondError)
-            }
-        }
-
-
-
-
+        registerData.value = createInitialRegisterData()
+        await redirectToNextPage()
     } catch (error) {
         console.error('Registration failed:', error)
         registerResult.value = {
             type: 'error',
-            message: handleApiError(error, '註冊失敗，請稍後再試')
+            message: handleApiError(error, '註冊失敗，請稍後再試'),
         }
     } finally {
         isRegistering.value = false
@@ -278,12 +291,6 @@ const handleRegister = async () => {
     font-weight: 600;
 }
 
-.loading {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-200);
-}
-
 .profile-info {
     text-align: center;
 }
@@ -308,41 +315,6 @@ const handleRegister = async () => {
     font-size: 13px;
 }
 
-.avatar {
-    margin-bottom: 16px;
-}
-
-.avatar img {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    border: 4px solid var(--primary-100);
-    object-fit: cover;
-}
-
-.user-info h3 {
-    color: var(--text-100);
-    margin: 16px 0 8px;
-    font-size: 20px;
-}
-
-.uid {
-    font-family: monospace;
-    background: var(--bg-100);
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    color: var(--text-200);
-    margin: 8px 0;
-    word-break: break-all;
-}
-
-.status {
-    color: var(--text-200);
-    font-size: 14px;
-    margin-bottom: 24px;
-}
-
 .register-form {
     text-align: left;
     margin-top: 24px;
@@ -365,6 +337,7 @@ const handleRegister = async () => {
 }
 
 .form-group input,
+.form-group select,
 .form-group textarea {
     width: 100%;
     padding: 12px 16px;
@@ -378,6 +351,7 @@ const handleRegister = async () => {
 }
 
 .form-group input:focus,
+.form-group select:focus,
 .form-group textarea:focus {
     outline: none;
     border-color: var(--primary-100);
@@ -405,55 +379,19 @@ const handleRegister = async () => {
     cursor: not-allowed;
 }
 
-.user-exists {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.user-exists .icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-}
-
-.user-exists h3 {
-    color: var(--text-100);
-    margin: 16px 0;
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.user-exists p {
-    color: var(--text-200);
-    margin: 16px 0 24px;
-    line-height: 1.5;
-}
-
-.close-btn {
-    background: var(--primary-100);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.close-btn:hover {
-    background: var(--primary-200);
-}
-
+.user-exists,
 .login-required {
     text-align: center;
     padding: 40px 20px;
 }
 
+.user-exists .icon,
 .login-required .icon {
     font-size: 48px;
     margin-bottom: 16px;
 }
 
+.user-exists h3,
 .login-required h3 {
     color: var(--text-100);
     margin: 16px 0;
@@ -461,6 +399,7 @@ const handleRegister = async () => {
     font-weight: 600;
 }
 
+.user-exists p,
 .login-required p {
     color: var(--text-200);
     margin: 16px 0 24px;

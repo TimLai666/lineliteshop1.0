@@ -419,12 +419,44 @@ func parseCustomer(itemMap map[string]any) (*models.Customer, error) {
 		birthday = parseDateOnly(birthdayVal)
 	}
 
+	occupation := ""
+	if occupationVal, exists := itemMap["occupation"]; exists {
+		if o, ok := occupationVal.(string); ok {
+			occupation = o
+		}
+	}
+
+	gender := ""
+	if genderVal, exists := itemMap["gender"]; exists {
+		if g, ok := genderVal.(string); ok {
+			gender = g
+		}
+	}
+
+	incomeRange := ""
+	if incomeRangeVal, exists := itemMap["income_range"]; exists {
+		if income, ok := incomeRangeVal.(string); ok {
+			incomeRange = income
+		}
+	}
+
+	householdSize := ""
+	if householdSizeVal, exists := itemMap["household_size"]; exists {
+		if size, ok := householdSizeVal.(string); ok {
+			householdSize = size
+		}
+	}
+
 	return &models.Customer{
-		ID:       id,
-		Name:     name,
-		Email:    email,
-		Phone:    phone,
-		Birthday: birthday,
+		ID:            id,
+		Name:          name,
+		Email:         email,
+		Phone:         phone,
+		Birthday:      birthday,
+		Occupation:    occupation,
+		Gender:        gender,
+		IncomeRange:   incomeRange,
+		HouseholdSize: householdSize,
 	}, nil
 }
 
