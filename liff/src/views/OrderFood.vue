@@ -767,7 +767,7 @@ onMounted(async () => {
 }
 
 .product-image {
-    height: 120px;
+    height: 180px;
     background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     display: flex;
     align-items: center;
