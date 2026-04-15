@@ -89,9 +89,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="householdSize">同住人口數:</label>
+                        <label for="householdSize">同住人口數（包含自己）:</label>
                         <select id="householdSize" v-model="registerData.householdSize">
-                            <option value="">請選擇同住人口數</option>
+                            <option value="">請選擇同住人口數（包含自己）</option>
                             <option v-for="option in householdSizeOptions" :key="option" :value="option">
                                 {{ option }}
                             </option>
