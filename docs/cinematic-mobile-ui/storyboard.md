@@ -2,11 +2,11 @@
 
 ## Director Brief
 
-- Visual thesis: turn the LIFF ordering flow into a warm, intimate mobile experience built from soft light, disciplined spacing, and framed surfaces
+- Visual thesis: turn the LIFF ordering flow into a late-night Hong Kong food scene built from warm practical light, signage-like accents, and tight mobile framing
 - Signature techniques and web translation:
-  - Warm practical glow -> layered amber shadows, inner highlights, and soft radial backgrounds
-  - Frames within frames -> bordered cards, inset panels, image masks, and structured modals
-  - Claustrophobic intimacy -> tighter mobile widths, richer card headers, and bottom-sheet style dialogs
+  - Storefront glow -> layered amber shadows, lit chips, and warm edge highlights
+  - Fragmented scene markers -> scene labels, file numbers, and card-level narrative markers
+  - Claustrophobic intimacy -> tighter mobile widths, deeper card framing, and bottom-sheet style dialogs
 - Typography direction:
   - Body stays highly readable for mobile
   - Titles gain a more editorial tone through serif headings and stronger spacing
@@ -18,8 +18,8 @@
 
 ### Register
 
-- One big idea: a welcoming intake chamber rather than a plain form
-- Page scene thesis: the user is stepping into a warm foyer before ordering
+- One big idea: a late-night check-in counter rather than a plain form
+- Page scene thesis: the user is stepping up to the counter before entering the menu scene
 - Hero dominance statement: the form feels premium because the panel reads like a lit object, not a white rectangle
 - Restraint statement: no giant hero illustration, no competing colors
 - Material thesis: blurred glow behind a porcelain form panel with quiet strokes
@@ -29,9 +29,9 @@
 
 ### Order Food
 
-- One big idea: product cards feel like plated scenes, not commodity tiles
-- Page scene thesis: browsing is a sequence of warm close-ups and crisp action zones
-- Hero dominance statement: the top bar and search rail feel directed through translucency and layered light
+- One big idea: product cards feel like stills from a midnight snack film, not commodity tiles
+- Page scene thesis: browsing is a sequence of warm close-ups, scene labels, and quick action beats
+- Hero dominance statement: the top bar and menu banner feel like lit signage instead of app chrome
 - Restraint statement: no cluttered badges, no marketplace-grid chaos
 - Material thesis: elevated product slabs, image vignettes, inset metadata chips
 - Typography thesis: names carry more authority than helper text
@@ -40,7 +40,7 @@
 
 ### My Orders
 
-- One big idea: order history reads like a stack of receipts in a curated archive
+- One big idea: order history reads like a stack of case files from the same night
 - Page scene thesis: status, items, and actions are separated into deliberate beats
 - Hero dominance statement: cards feel trustworthy because hierarchy and spacing are sharper than before
 - Restraint statement: no dashboard chrome, no enterprise-table styling
@@ -52,4 +52,3 @@
 ## Uniqueness Guardrail
 
 - The mobile UI must not collapse into a generic food-delivery marketplace or social feed in grayscale wireframe form.
-

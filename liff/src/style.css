@@ -1,8 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap');
-
 :root {
-  font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-  --heading-family: 'Noto Serif TC', 'PMingLiU', 'MingLiU', serif;
+  font-family: 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --heading-family: 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 

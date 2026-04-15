@@ -12,21 +12,21 @@ Date: 2026-04-15
 ## Chosen Film Language
 
 - Director: Wong Kar-wai
-- Film: `In the Mood for Love`
+- Film: `Chungking Express`
 - Why this fit:
-  - The existing orange-led palette already supports warm tungsten light without a theme-color reset.
-  - The app is mobile-first, so close framing, intimate spacing, and corridor-like vertical rhythm translate well.
-  - The user asked for beauty, not a colder enterprise redesign. This film language raises tactility and mood while staying usable.
+  - The existing orange-led palette maps naturally to late-night storefront light, amber interiors, and fast-food counter warmth.
+  - The app is mobile-first, so compressed framing, sticker-like labels, and narrow urban rhythm translate better than a slower period-romance composition.
+  - The product itself is food ordering, so `Chungking Express` gives the UI a stronger scene identity: fast, intimate, urban, and recognizably restaurant-adjacent.
 
 ## Research Notes
 
-- `In the Mood for Love` is defined by tight framing, warm practical light, soft diffusion, and frames-within-frames.
-- The visual tension comes from restraint, not spectacle: still compositions, selective glow, compressed space, and emotionally charged surfaces.
-- Premium coffeehouse and ordering references reinforce warmer materials, layered textures, and clearer pickup / action zones.
+- `Chungking Express` is defined by amber practical light, crowded urban intimacy, signage-like text, and fast fragments of human movement inside tight spaces.
+- The visual energy comes from contrast between warm stalls and darker city edges, making it better for mobile order cards, chips, and cart overlays.
+- Premium food-ordering references reinforce the need for strong menu framing, quick state recognition, and one-handed action clarity.
 
 Sources:
 
-- https://colorculture.org/cinematography-analysis-of-in-the-mood-for-love/
+- https://colorculture.org/cinematography-analysis-of-chungking-express/
 - https://about.starbucks.com/stories/2025/starbucks-coffeehouse-designs-enter-a-new-era-take-a-look/
 
 ## Previous-work Audit
@@ -42,7 +42,7 @@ Sources:
 
 ## Primary Composition Family
 
-- Panoramic slab on cards plus corridor-style vertical flow for pages
+- Night-counter slab on cards plus narrow-corridor vertical flow for pages
 
 ## Reference Protocol
 
@@ -57,4 +57,3 @@ Sources:
 - Density cadence: image / summary / action / modal should alternate between breath and compression
 - Recurring materials: porcelain-white surfaces, amber glow, soft blur, inset borders, light grain-like gradients
 - Motion posture: restrained; mostly hover / active lift and modal depth, not constant choreography
-

@@ -24,6 +24,7 @@
 - Add supporting surface, shadow, and text tokens for depth
 - Introduce one editorial serif heading family fallback without making body copy harder to read
 - Use layered background gradients instead of a flat gray page
+- Add scene labels, archive labels, and marquee-like banner blocks that point clearly to `Chungking Express`
 
 ## Shared Surface Rules
 

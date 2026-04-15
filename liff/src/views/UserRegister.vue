@@ -301,7 +301,7 @@ const handleRegister = async () => {
 .register-card h2 {
     text-align: center;
     color: var(--text-100);
-    margin-bottom: 28px;
+    margin-bottom: 20px;
     font-size: 28px;
     font-weight: 600;
     position: relative;
