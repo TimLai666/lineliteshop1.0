@@ -321,6 +321,8 @@ const goToOrders = () => {
 const loadProducts = async () => {
     try {
         loading.value = true
+        errorMessage.value = ''
+        showError.value = false
         console.log('開始載入商品...')
         const response = await productApi.getAllProducts()
         console.log('API 回應商品:', response)
@@ -331,96 +333,14 @@ const loadProducts = async () => {
             // 過濾掉下架的商品，顯示有現貨或暫時無法供貨的商品
             products.value = response.filter(p => p.status !== '下架')
         } else {
-            console.log('API 沒有回傳商品資料，使用模擬資料')
-            // 模擬商品資料 (如果 API 沒有回傳資料)
-            products.value = [
-                {
-                    name: '經典漢堡',
-                    category: '主餐',
-                    price: 120,
-                    stock: 15,
-                    description: '牛肉漢堡搭配新鮮蔬菜',
-                    status: 'available'
-                },
-                {
-                    name: '炸雞套餐',
-                    category: '主餐',
-                    price: 150,
-                    stock: 12,
-                    description: '酥脆炸雞配薯條',
-                    status: 'available'
-                },
-                {
-                    name: '義大利麵',
-                    category: '主餐',
-                    price: 180,
-                    stock: 8,
-                    description: '奶油白醬義大利麵',
-                    status: 'available'
-                },
-                {
-                    name: '可樂',
-                    category: '飲料',
-                    price: 25,
-                    stock: 30,
-                    description: '冰涼可口可樂',
-                    status: 'available'
-                },
-                {
-                    name: '珍珠奶茶',
-                    category: '飲料',
-                    price: 45,
-                    stock: 20,
-                    description: '香濃奶茶配Q彈珍珠',
-                    status: 'available'
-                },
-                {
-                    name: '薯條',
-                    category: '小食',
-                    price: 60,
-                    stock: 25,
-                    description: '金黃酥脆薯條',
-                    status: 'available'
-                },
-                {
-                    name: '雞塊',
-                    category: '小食',
-                    price: 80,
-                    stock: 18,
-                    description: '香嫩雞塊6塊裝',
-                    status: 'available'
-                },
-                {
-                    name: '巧克力蛋糕',
-                    category: '甜點',
-                    price: 90,
-                    stock: 6,
-                    description: '濃郁巧克力蛋糕',
-                    status: 'available'
-                }
-            ]
+            console.warn('API 沒有回傳商品資料')
+            products.value = []
         }
     } catch (error) {
         console.error('載入商品失敗:', error)
-        // 如果 API 失敗，使用模擬資料
-        products.value = [
-            {
-                name: '經典漢堡',
-                category: '主餐',
-                price: 120,
-                stock: 15,
-                description: '牛肉漢堡搭配新鮮蔬菜',
-                status: 'available'
-            },
-            {
-                name: '炸雞套餐',
-                category: '主餐',
-                price: 150,
-                stock: 12,
-                description: '酥脆炸雞配薯條',
-                status: 'available'
-            }
-        ]
+        products.value = []
+        errorMessage.value = error.message || '無法載入商品資料'
+        showError.value = true
     } finally {
         loading.value = false
     }
