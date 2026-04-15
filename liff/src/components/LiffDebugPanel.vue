@@ -90,7 +90,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { liff } from '@line/liff'
 import { useLiff } from '../composables/useLiff.js'
-import { isDev } from '../config'
+import { isLiffMockEnabled } from '../config'
 
 // 使用全局 LIFF 狀態
 const {
@@ -139,8 +139,8 @@ const canTestLogin = computed(() => {
 
 const refreshDebugInfo = async () => {
     try {
-        if (isDev()) {
-            // 開發模式的模擬資訊
+        if (isLiffMockEnabled()) {
+            // 明確啟用 mock 時才顯示模擬資訊
             debugInfo.value = {
                 isInClient: true,
                 os: 'mock',

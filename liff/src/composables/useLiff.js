@@ -1,6 +1,6 @@
 import { ref, reactive, computed, readonly } from 'vue'
 import { liff } from '@line/liff'
-import { isDev, getLiffId } from '../config'
+import { isLiffMockEnabled, getLiffId } from '../config'
 
 // 全局 LIFF 狀態
 const liffState = reactive({
@@ -22,9 +22,9 @@ const initializeLiff = async () => {
     liffState.error = null
 
     try {
-        // 在開發環境中使用自定義 Mock
-        if (isDev()) {
-            console.log('🚀 開發模式：啟用自定義 LIFF Mock 功能')
+        // 僅在明確開啟旗標時才使用 LIFF Mock
+        if (isLiffMockEnabled()) {
+            console.log('🚀 啟用自定義 LIFF Mock 功能')
 
             // 模擬 LIFF 初始化成功
             console.log('✅ LIFF Mock 初始化成功!')
@@ -71,7 +71,7 @@ const initializeLiff = async () => {
         })
 
         console.log('✅ LIFF 初始化成功!')
-        console.log('🔧 Mock 模式:', isDev() ? '啟用' : '停用')
+        console.log('🔧 Mock 模式:', isLiffMockEnabled() ? '啟用' : '停用')
 
         // 獲取 LIFF 上下文資訊
         const context = liff.getContext()
@@ -128,8 +128,8 @@ const initializeLiff = async () => {
 
 // LIFF 登入函數
 const loginLiff = () => {
-    if (isDev()) {
-        console.log('開發模式：模擬 LIFF 登入')
+    if (isLiffMockEnabled()) {
+        console.log('Mock 模式：模擬 LIFF 登入')
         return
     }
 
@@ -141,9 +141,9 @@ const loginLiff = () => {
 // 關閉 LIFF 函數
 const closeLiff = () => {
     try {
-        if (isDev()) {
-            console.log('開發模式：模擬關閉 LIFF')
-            alert('開發模式：模擬關閉 LIFF 頁面')
+        if (isLiffMockEnabled()) {
+            console.log('Mock 模式：模擬關閉 LIFF')
+            alert('Mock 模式：模擬關閉 LIFF 頁面')
             return
         }
 
@@ -160,8 +160,8 @@ const closeLiff = () => {
 
 // 發送訊息到 LINE 聊天室
 const sendMessage = (message) => {
-    if (isDev()) {
-        console.log('開發模式：模擬發送訊息:', message)
+    if (isLiffMockEnabled()) {
+        console.log('Mock 模式：模擬發送訊息:', message)
         return Promise.resolve()
     }
 
@@ -175,8 +175,8 @@ const sendMessage = (message) => {
 
 // 檢查是否在 LINE 內部瀏覽器
 const isInClient = () => {
-    if (isDev()) {
-        return true // 開發模式假設在 LINE 內部
+    if (isLiffMockEnabled()) {
+        return true // Mock 模式假設在 LINE 內部
     }
     return liffState.isReady ? liff.isInClient() : false
 }
