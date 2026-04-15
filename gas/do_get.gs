@@ -50,7 +50,7 @@ function getCategories() {
   const categories = data.slice(1).map((row) => ({
     name: row[0],
     description: row[1],
-    is_active: row[2] === "上架",
+    is_active: row[2] === "是",
   }));
 
   return ContentService.createTextOutput(
