@@ -266,42 +266,62 @@ const handleRegister = async () => {
 <style scoped>
 .register-container {
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-200) 100%);
+    background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.36), transparent 28%),
+        linear-gradient(180deg, rgba(var(--primary-rgb), 0.88) 0%, rgba(var(--primary-rgb), 0.62) 42%, #f6ede4 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    padding: 18px;
     margin: 0;
 }
 
 .register-card {
-    background: white;
-    border-radius: 16px;
-    padding: 32px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    position: relative;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 249, 241, 0.92));
+    border-radius: 32px;
+    padding: 34px 28px;
+    box-shadow: var(--shadow-strong);
     max-width: 500px;
     width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    overflow: hidden;
+    backdrop-filter: blur(18px);
+}
+
+.register-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 108px;
+    background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.15), transparent 100%);
+    pointer-events: none;
 }
 
 .register-card h2 {
     text-align: center;
     color: var(--text-100);
-    margin-bottom: 24px;
-    font-size: 24px;
+    margin-bottom: 28px;
+    font-size: 28px;
     font-weight: 600;
+    position: relative;
+    z-index: 1;
 }
 
 .profile-info {
     text-align: center;
+    position: relative;
+    z-index: 1;
 }
 
 .info-notice {
-    background: var(--bg-100);
-    border: 1px solid var(--bg-200);
-    border-radius: 8px;
-    padding: 16px;
-    margin: 20px 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 245, 236, 0.72));
+    border: 1px solid rgba(var(--primary-rgb), 0.14);
+    border-radius: 20px;
+    padding: 18px 16px;
+    margin: 24px 0;
     text-align: center;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .info-notice p {
@@ -317,18 +337,19 @@ const handleRegister = async () => {
 
 .register-form {
     text-align: left;
-    margin-top: 24px;
+    margin-top: 26px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
+    margin-bottom: 10px;
+    font-weight: 600;
     color: var(--text-100);
+    letter-spacing: 0.01em;
 }
 
 .required {
@@ -340,14 +361,15 @@ const handleRegister = async () => {
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 12px 16px;
-    border: 2px solid var(--bg-200);
-    border-radius: 8px;
+    padding: 14px 16px;
+    border: 1px solid rgba(126, 94, 79, 0.16);
+    border-radius: 18px;
     font-size: 16px;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
     box-sizing: border-box;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.86);
     color: var(--text-100);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .form-group input:focus,
@@ -355,34 +377,43 @@ const handleRegister = async () => {
 .form-group textarea:focus {
     outline: none;
     border-color: var(--primary-100);
+    background: white;
+    box-shadow:
+        0 0 0 4px rgba(var(--primary-rgb), 0.08),
+        0 14px 30px rgba(var(--primary-rgb), 0.08);
 }
 
 .register-btn {
     width: 100%;
-    background: var(--primary-100);
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     color: white;
     border: none;
     padding: 16px;
-    border-radius: 8px;
+    border-radius: 20px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: transform 0.25s, box-shadow 0.25s, background-color 0.25s;
+    box-shadow: 0 18px 30px rgba(var(--primary-rgb), 0.22);
 }
 
 .register-btn:hover:not(:disabled) {
     background: var(--primary-200);
+    transform: translateY(-1px);
 }
 
 .register-btn:disabled {
     background: var(--bg-300);
     cursor: not-allowed;
+    box-shadow: none;
 }
 
 .user-exists,
 .login-required {
     text-align: center;
     padding: 40px 20px;
+    position: relative;
+    z-index: 1;
 }
 
 .user-exists .icon,
@@ -395,7 +426,7 @@ const handleRegister = async () => {
 .login-required h3 {
     color: var(--text-100);
     margin: 16px 0;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 600;
 }
 
@@ -407,40 +438,41 @@ const handleRegister = async () => {
 }
 
 .login-btn {
-    background: var(--primary-100);
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     color: white;
     border: none;
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: 999px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.25s;
 }
 
 .login-btn:hover {
     background: var(--primary-200);
+    transform: translateY(-1px);
 }
 
 @media (max-width: 600px) {
     .register-container {
-        padding: 0;
+        padding: 12px;
         align-items: flex-start;
     }
 
     .register-card {
-        padding: 20px;
-        margin: 0;
-        border-radius: 0;
-        min-height: 100vh;
+        padding: 24px 18px 28px;
+        margin: 0 auto;
+        border-radius: 28px;
+        min-height: calc(100vh - 24px);
         box-sizing: border-box;
-        width: 100vw;
+        width: 100%;
         max-width: none;
     }
 
     .register-card h2 {
-        font-size: 20px;
-        margin-top: 20px;
+        font-size: 24px;
+        margin-top: 8px;
     }
 }
 </style>

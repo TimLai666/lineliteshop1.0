@@ -26,6 +26,12 @@ defineProps({
 .user-profile-card {
     text-align: center;
     margin-bottom: 24px;
+    padding: 24px 20px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 249, 242, 0.88));
+    border: 1px solid var(--border-soft);
+    border-radius: 28px;
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(14px);
 }
 
 .avatar {
@@ -33,40 +39,45 @@ defineProps({
 }
 
 .avatar img {
-    width: 80px;
-    height: 80px;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
-    border: 4px solid var(--primary-100);
+    border: 4px solid rgba(255, 255, 255, 0.92);
     object-fit: cover;
+    box-shadow:
+        0 0 0 1px rgba(var(--primary-rgb), 0.18),
+        0 16px 30px rgba(var(--primary-rgb), 0.18);
 }
 
 .user-info h3 {
     color: var(--text-100);
     margin: 16px 0 8px;
-    font-size: 20px;
+    font-size: 22px;
 }
 
 .uid {
     font-family: monospace;
-    background: var(--bg-100);
-    padding: 8px 12px;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px 12px;
+    border-radius: 14px;
     font-size: 12px;
     color: var(--text-200);
     margin: 8px 0;
     word-break: break-all;
+    border: 1px solid rgba(var(--primary-rgb), 0.1);
 }
 
 .status {
     color: var(--text-200);
     font-size: 14px;
-    margin-bottom: 24px;
+    margin-bottom: 0;
+    line-height: 1.6;
 }
 
 @media (max-width: 600px) {
     .avatar img {
-        width: 60px;
-        height: 60px;
+        width: 72px;
+        height: 72px;
     }
 }
 </style>

@@ -64,18 +64,33 @@ onMounted(async () => {
 
 /* 全局加載指示器樣式 */
 .global-loading {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-200) 100%);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.24), transparent 30%),
+    linear-gradient(160deg, var(--primary-100) 0%, var(--primary-200) 62%, #ff9c74 100%);
   color: white;
   text-align: center;
   padding: 20px;
+  overflow: hidden;
+}
+
+.global-loading::before {
+  content: '';
+  position: absolute;
+  inset: 18px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 55%);
+  pointer-events: none;
 }
 
 .loading-spinner {
+  position: relative;
   width: 50px;
   height: 50px;
   border: 4px solid rgba(255, 255, 255, 0.3);
@@ -83,6 +98,7 @@ onMounted(async () => {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20px;
+  box-shadow: 0 0 26px rgba(255, 255, 255, 0.22);
 }
 
 @keyframes spin {
@@ -98,20 +114,36 @@ onMounted(async () => {
 .global-loading p {
   font-size: 16px;
   margin: 0;
-  opacity: 0.9;
+  opacity: 0.95;
+  max-width: 280px;
+  line-height: 1.7;
 }
 
 /* 全局錯誤樣式 */
 .global-error {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.2), transparent 28%),
+    linear-gradient(145deg, #f26a60 0%, #dd564f 55%, #c54445 100%);
   color: white;
   text-align: center;
   padding: 20px;
+  overflow: hidden;
+}
+
+.global-error::before {
+  content: '';
+  position: absolute;
+  inset: 18px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 55%);
+  pointer-events: none;
 }
 
 .error-icon {
@@ -134,19 +166,21 @@ onMounted(async () => {
 }
 
 .retry-btn {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.14);
   color: white;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.16);
 }
 
 .retry-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.65);
 }
 </style>

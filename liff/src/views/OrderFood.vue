@@ -508,46 +508,53 @@ onMounted(async () => {
 <style scoped>
 .order-food-container {
     min-height: 100vh;
-    background-color: var(--bg-100);
+    background:
+        radial-gradient(circle at top, rgba(var(--primary-rgb), 0.14), transparent 26%),
+        linear-gradient(180deg, #fff9f4 0%, var(--bg-100) 38%, #f2eae2 100%);
     padding: 0;
     margin: 0;
 }
 
 /* 頂部標題區域 */
 .header {
-    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.92), rgba(var(--primary-rgb), 0.78));
     color: white;
     padding: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 16px 30px rgba(var(--primary-rgb), 0.16);
+    backdrop-filter: blur(18px);
 }
 
 .title {
-    font-size: 1.5rem;
+    font-size: 1.65rem;
     margin: 0;
     font-weight: 600;
 }
 
 .orders-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.28);
     color: white;
     padding: 8px 12px;
-    border-radius: 8px;
+    border-radius: 14px;
     cursor: pointer;
     transition: all 0.3s;
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
+    box-shadow: none;
 }
 
 .orders-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.24);
+    border-color: rgba(255, 255, 255, 0.42);
 }
 
 .orders-icon {
@@ -562,15 +569,17 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.18);
     padding: 0.5rem 1rem;
-    border-radius: 20px;
+    border-radius: 999px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.25s;
+    border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .cart-summary:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.24);
+    transform: translateY(-1px);
 }
 
 .cart-icon {
@@ -596,53 +605,70 @@ onMounted(async () => {
 
 /* 搜尋區域 */
 .search-section {
-    padding: 1rem;
-    background: white;
-    border-bottom: 1px solid var(--bg-200);
+    position: sticky;
+    top: 72px;
+    z-index: 95;
+    padding: 1rem 1rem 0.8rem;
+    background: rgba(255, 250, 245, 0.76);
+    border-bottom: 1px solid rgba(116, 80, 66, 0.08);
+    backdrop-filter: blur(18px);
 }
 
 .search-input {
     width: 100%;
-    padding: 0.8rem;
-    border: 2px solid var(--bg-200);
-    border-radius: 25px;
+    padding: 0.95rem 1rem;
+    border: 1px solid rgba(126, 94, 79, 0.16);
+    border-radius: 999px;
     font-size: 1rem;
     outline: none;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+    background: rgba(255, 255, 255, 0.84);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .search-input:focus {
     border-color: var(--primary-100);
+    background: white;
 }
 
 /* 分類區域 */
 .category-section {
-    background: white;
-    padding: 0.5rem 1rem;
-    border-bottom: 1px solid var(--bg-200);
+    position: sticky;
+    top: 142px;
+    z-index: 94;
+    background: rgba(255, 250, 245, 0.76);
+    padding: 0.5rem 1rem 0.9rem;
+    border-bottom: 1px solid rgba(116, 80, 66, 0.08);
+    backdrop-filter: blur(18px);
 }
 
 .category-tabs {
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.category-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .category-tab {
     flex-shrink: 0;
-    padding: 0.5rem 1rem;
-    border: 2px solid var(--bg-200);
-    background: white;
+    padding: 0.55rem 1rem;
+    border: 1px solid rgba(116, 80, 66, 0.12);
+    background: rgba(255, 255, 255, 0.74);
     color: var(--text-100);
-    border-radius: 20px;
+    border-radius: 999px;
     cursor: pointer;
     transition: all 0.3s;
     font-size: 0.9rem;
     white-space: nowrap;
+    box-shadow: 0 8px 18px rgba(80, 58, 48, 0.06);
 }
 
 .category-tab.active {
-    background: var(--primary-100);
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     color: white;
     border-color: var(--primary-100);
 }
@@ -683,7 +709,9 @@ onMounted(async () => {
 
 /* 商品區域 */
 .products-section {
-    padding: 1rem;
+    padding: 1.25rem 1rem 2rem;
+    max-width: 760px;
+    margin: 0 auto;
 }
 
 .no-products {
@@ -695,22 +723,22 @@ onMounted(async () => {
 .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
+    gap: 1.2rem;
 }
 
 .product-card {
-    background: linear-gradient(135deg, #ffffff, #fafafa);
-    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 249, 242, 0.92));
+    border-radius: 28px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-medium);
     transition: transform 0.3s, box-shadow 0.3s;
     position: relative;
-    border: 1px solid var(--bg-200);
+    border: 1px solid rgba(116, 80, 66, 0.1);
 }
 
 .product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-strong);
     border-color: var(--primary-200);
 }
 
@@ -729,20 +757,20 @@ onMounted(async () => {
 
 .status-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 14px;
+    right: 14px;
     z-index: 10;
 }
 
 .badge-unavailable,
 .badge-sold-out {
     display: inline-block;
-    padding: 0.3rem 0.6rem;
-    border-radius: 16px;
+    padding: 0.38rem 0.74rem;
+    border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 600;
     color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
 }
 
 .badge-unavailable {
@@ -768,7 +796,7 @@ onMounted(async () => {
 
 .product-image {
     height: 180px;
-    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
+    background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.88), rgba(255, 161, 120, 0.9));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -791,7 +819,18 @@ onMounted(async () => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    background:
+        linear-gradient(180deg, rgba(29, 17, 12, 0.02), rgba(29, 17, 12, 0.24)),
+        linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.12) 50%, transparent 70%);
+}
+
+.product-image::after {
+    content: '';
+    position: absolute;
+    inset: auto 14px 14px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.18);
+    z-index: 1;
 }
 
 .product-emoji {
@@ -802,21 +841,22 @@ onMounted(async () => {
 }
 
 .product-info {
-    padding: 1rem;
+    padding: 1.15rem 1.1rem 1.2rem;
 }
 
 .product-name {
-    font-size: 1.2rem;
+    font-size: 1.32rem;
     font-weight: 600;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.55rem 0;
     color: var(--text-100);
+    letter-spacing: 0.01em;
 }
 
 .product-description {
     color: var(--text-200);
     font-size: 0.9rem;
-    margin: 0 0 0.8rem 0;
-    line-height: 1.4;
+    margin: 0 0 0.95rem 0;
+    line-height: 1.55;
 }
 
 .product-meta {
@@ -827,10 +867,11 @@ onMounted(async () => {
 }
 
 .product-category {
-    background: var(--bg-200);
+    background: rgba(255, 255, 255, 0.8);
     color: var(--text-200);
-    padding: 0.3rem 0.6rem;
-    border-radius: 12px;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(116, 80, 66, 0.08);
 }
 
 .product-stock {
@@ -850,10 +891,13 @@ onMounted(async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(116, 80, 66, 0.08);
 }
 
 .product-price {
-    font-size: 1.3rem;
+    font-size: 1.55rem;
     font-weight: bold;
     color: var(--primary-100);
 }
@@ -865,13 +909,13 @@ onMounted(async () => {
 }
 
 .quantity-btn {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
     border-radius: 50%;
-    border: 2px solid var(--primary-100);
-    background: white;
+    border: 1px solid rgba(var(--primary-rgb), 0.22);
+    background: rgba(255, 255, 255, 0.92);
     color: var(--primary-100);
     font-size: 1.2rem;
     font-weight: bold;
@@ -882,6 +926,7 @@ onMounted(async () => {
     transition: all 0.3s;
     padding: 0;
     line-height: 1;
+    box-shadow: 0 10px 18px rgba(var(--primary-rgb), 0.1);
 }
 
 .quantity-btn:hover:not(:disabled) {
@@ -895,7 +940,7 @@ onMounted(async () => {
 }
 
 .quantity {
-    min-width: 30px;
+    min-width: 34px;
     text-align: center;
     font-weight: 600;
     font-size: 1.1rem;
@@ -911,7 +956,7 @@ onMounted(async () => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(36, 23, 18, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -923,20 +968,22 @@ onMounted(async () => {
 .checkout-modal,
 .success-modal,
 .error-modal {
-    background: white;
-    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 242, 0.96));
+    border-radius: 28px;
     max-width: 500px;
     width: 100%;
     max-height: 90vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: var(--shadow-strong);
 }
 
 .cart-header,
 .checkout-header {
     padding: 1.5rem;
-    border-bottom: 1px solid var(--bg-200);
+    border-bottom: 1px solid rgba(116, 80, 66, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -949,8 +996,8 @@ onMounted(async () => {
 }
 
 .close-btn {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(116, 80, 66, 0.12);
     font-size: 1.5rem;
     cursor: pointer;
     color: var(--text-200);
@@ -960,12 +1007,13 @@ onMounted(async () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
+    border-radius: 12px;
     transition: background-color 0.3s;
+    box-shadow: none;
 }
 
 .close-btn:hover {
-    background: var(--bg-200);
+    background: white;
 }
 
 .close-btn:disabled {
@@ -992,7 +1040,7 @@ onMounted(async () => {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 0;
-    border-bottom: 1px solid var(--bg-200);
+    border-bottom: 1px solid rgba(116, 80, 66, 0.08);
 }
 
 .cart-item:last-child {
@@ -1022,8 +1070,8 @@ onMounted(async () => {
     min-width: 32px;
     min-height: 32px;
     border-radius: 50%;
-    border: 2px solid var(--primary-100);
-    background: white;
+    border: 1px solid rgba(var(--primary-rgb), 0.22);
+    background: rgba(255, 255, 255, 0.92);
     color: var(--primary-100);
     cursor: pointer;
     display: flex;
@@ -1034,6 +1082,7 @@ onMounted(async () => {
     padding: 0;
     line-height: 1;
     transition: all 0.3s;
+    box-shadow: none;
 }
 
 .cart-item-controls button:hover:not(:disabled) {
@@ -1057,7 +1106,7 @@ onMounted(async () => {
 .cart-summary-detail {
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 2px solid var(--bg-200);
+    border-top: 1px solid rgba(116, 80, 66, 0.12);
 }
 
 .total-row {
@@ -1069,24 +1118,25 @@ onMounted(async () => {
 .cart-footer,
 .checkout-footer {
     padding: 1.5rem;
-    border-top: 1px solid var(--bg-200);
+    border-top: 1px solid rgba(116, 80, 66, 0.12);
 }
 
 .checkout-btn {
     width: 100%;
     padding: 1rem;
-    background: var(--primary-100);
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 18px;
     font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.25s;
 }
 
 .checkout-btn:hover {
     background: var(--primary-200);
+    transform: translateY(-1px);
 }
 
 /* 結帳表單 */
@@ -1103,7 +1153,7 @@ onMounted(async () => {
     display: flex;
     justify-content: space-between;
     padding: 0.5rem 0;
-    border-bottom: 1px solid var(--bg-200);
+    border-bottom: 1px solid rgba(116, 80, 66, 0.08);
 }
 
 .order-total {
@@ -1134,12 +1184,13 @@ onMounted(async () => {
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 0.8rem;
-    border: 2px solid var(--bg-200);
-    border-radius: 8px;
+    padding: 0.95rem 1rem;
+    border: 1px solid rgba(126, 94, 79, 0.16);
+    border-radius: 18px;
     font-size: 1rem;
     outline: none;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background: rgba(255, 255, 255, 0.84);
 }
 
 .form-group select:focus,
@@ -1157,7 +1208,7 @@ onMounted(async () => {
     flex: 1;
     padding: 1rem;
     border: none;
-    border-radius: 8px;
+    border-radius: 18px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
@@ -1165,12 +1216,13 @@ onMounted(async () => {
 }
 
 .cancel-btn {
-    background: var(--bg-200);
+    background: rgba(255, 255, 255, 0.9);
     color: var(--text-100);
+    border: 1px solid rgba(116, 80, 66, 0.12);
 }
 
 .cancel-btn:hover {
-    background: var(--bg-300);
+    background: white;
 }
 
 .cancel-btn:disabled {
@@ -1180,7 +1232,7 @@ onMounted(async () => {
 }
 
 .confirm-btn {
-    background: var(--primary-100);
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     color: white;
 }
 
@@ -1229,11 +1281,11 @@ onMounted(async () => {
     background: var(--primary-100);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 18px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.25s;
 }
 
 .error-btn {
@@ -1242,22 +1294,33 @@ onMounted(async () => {
 
 .success-btn:hover {
     background: var(--primary-200);
+    transform: translateY(-1px);
 }
 
 .error-btn:hover {
     background: #d32f2f;
+    transform: translateY(-1px);
 }
 
 /* 響應式設計 */
 @media (max-width: 768px) {
+    .cart-overlay,
+    .checkout-overlay,
+    .success-overlay,
+    .error-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
     .products-grid {
         grid-template-columns: 1fr;
     }
 
     .cart-modal,
     .checkout-modal {
-        margin: 0.5rem;
-        width: calc(100% - 1rem);
+        margin: 0;
+        width: 100%;
+        border-radius: 28px 28px 0 0;
     }
 
     .checkout-footer {
@@ -1265,11 +1328,25 @@ onMounted(async () => {
     }
 
     .header {
-        padding: 0.8rem;
+        padding: 0.8rem 0.9rem;
     }
 
     .title {
         font-size: 1.3rem;
+    }
+
+    .search-section {
+        top: 68px;
+        padding: 0.85rem 0.9rem 0.75rem;
+    }
+
+    .category-section {
+        top: 130px;
+        padding: 0.45rem 0.9rem 0.8rem;
+    }
+
+    .products-section {
+        padding: 1rem 0.9rem 1.8rem;
     }
 
     .orders-btn {
@@ -1309,10 +1386,11 @@ onMounted(async () => {
 .login-warning {
     text-align: center;
     padding: 1rem;
-    background: rgba(255, 193, 7, 0.1);
-    border: 1px solid rgba(255, 193, 7, 0.3);
-    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(255, 243, 176, 0.72), rgba(255, 255, 255, 0.9));
+    border: 1px solid rgba(var(--primary-rgb), 0.14);
+    border-radius: 20px;
     margin-bottom: 1rem;
+    box-shadow: var(--shadow-soft);
 }
 
 .login-warning p {
@@ -1322,25 +1400,26 @@ onMounted(async () => {
 }
 
 .login-btn {
-    padding: 0.5rem 1rem;
-    background: #ff9800;
+    padding: 0.65rem 1.1rem;
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 999px;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.25s;
 }
 
 .login-btn:hover {
-    background: #f57c00;
+    background: var(--primary-200);
+    transform: translateY(-1px);
 }
 
 /* 用戶資訊 */
 .user-info {
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid var(--bg-200);
+    border-bottom: 1px solid rgba(116, 80, 66, 0.1);
 }
 
 .user-info h3 {
@@ -1353,9 +1432,10 @@ onMounted(async () => {
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: var(--bg-100);
-    border-radius: 8px;
-    border: 1px solid var(--bg-200);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 249, 242, 0.86));
+    border-radius: 20px;
+    border: 1px solid rgba(116, 80, 66, 0.1);
+    box-shadow: var(--shadow-soft);
 }
 
 .user-avatar {
@@ -1363,7 +1443,8 @@ onMounted(async () => {
     height: 48px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--primary-100);
+    border: 2px solid rgba(255, 255, 255, 0.96);
+    box-shadow: 0 0 0 1px rgba(var(--primary-rgb), 0.18);
 }
 
 .user-details {

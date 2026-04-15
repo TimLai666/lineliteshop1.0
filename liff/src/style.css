@@ -1,5 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap');
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  --heading-family: 'Noto Serif TC', 'PMingLiU', 'MingLiU', serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -15,125 +18,191 @@
   --primary-100: #ff5722;
   --primary-200: #ff8a50;
   --primary-300: #fff3b0;
+  --primary-rgb: 255, 87, 34;
   --accent-100: #a1e2ff;
   --accent-200: #03a9f4;
   --accent-300: #004f90;
-  --text-100: #333333;
-  --text-200: #5c5c5c;
-  --bg-100: #f5f5f5;
-  --bg-200: #ebebeb;
-  --bg-300: #c2c2c2;
+  --accent-rgb: 3, 169, 244;
+  --text-100: #332b29;
+  --text-200: #6b5f5c;
+  --text-300: #918684;
+  --bg-50: #fffaf5;
+  --bg-100: #f7f1eb;
+  --bg-200: #ede2d7;
+  --bg-300: #d4c6ba;
+  --surface-100: rgba(255, 255, 255, 0.88);
+  --surface-200: rgba(255, 247, 239, 0.72);
+  --surface-300: #fffdf9;
+  --border-soft: rgba(116, 80, 66, 0.12);
+  --border-strong: rgba(var(--primary-rgb), 0.22);
+  --shadow-soft: 0 12px 30px rgba(103, 72, 56, 0.08);
+  --shadow-medium: 0 18px 40px rgba(103, 72, 56, 0.12);
+  --shadow-strong: 0 28px 60px rgba(74, 47, 35, 0.16);
+  --glow-soft: 0 0 0 1px rgba(255, 255, 255, 0.4) inset,
+    0 18px 40px rgba(var(--primary-rgb), 0.12);
 }
 
-/* 重置全域樣式，確保手機端滿版 */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body,
-html {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow-x: hidden;
+*::selection {
+  background: rgba(var(--primary-rgb), 0.18);
+  color: var(--text-100);
 }
 
-a {
-  font-weight: 500;
-  color: var(--accent-100);
-  text-decoration: inherit;
-}
-a:hover {
-  color: var(--accent-200);
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  color: var(--text-100);
+  background:
+    radial-gradient(circle at top, rgba(var(--primary-rgb), 0.18), transparent 34%),
+    radial-gradient(circle at 82% 18%, rgba(var(--accent-rgb), 0.12), transparent 28%),
+    linear-gradient(180deg, #fffaf6 0%, var(--bg-100) 42%, #f3ece4 100%);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+a {
+  font-weight: 500;
+  color: var(--accent-300);
+  text-decoration: inherit;
+  transition: color 0.25s ease;
+}
+
+a:hover {
+  color: var(--accent-200);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--heading-family);
+  letter-spacing: 0.01em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 button {
-  border-radius: 8px;
+  border-radius: 16px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
+  padding: 0.72em 1.2em;
+  font-size: 1rem;
+  font-weight: 600;
   background-color: var(--primary-100);
   color: white;
   cursor: pointer;
-  transition: all 0.25s;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    color 0.25s ease;
+  box-shadow: 0 10px 24px rgba(var(--primary-rgb), 0.22);
+  -webkit-tap-highlight-color: transparent;
 }
+
 button:hover {
   background-color: var(--primary-200);
-  border-color: var(--primary-100);
+  border-color: rgba(var(--primary-rgb), 0.2);
+  transform: translateY(-1px);
 }
+
+button:active {
+  transform: translateY(0);
+}
+
 button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+button:focus-visible,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 4px rgba(var(--primary-rgb), 0.12),
+    0 10px 24px rgba(var(--primary-rgb), 0.14);
+}
+
+input,
+select,
+textarea {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(128, 104, 92, 0.18);
+  color: var(--text-100);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-300);
 }
 
 .card {
   padding: 2em;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--bg-200);
+  background-color: var(--surface-100);
+  border-radius: 24px;
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-soft);
+  backdrop-filter: blur(18px);
 }
 
 #app {
-  max-width: 1280px;
+  width: 100%;
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
-/* 添加一些實用的樣式類別 */
 .btn-primary {
-  background: var(--primary-100);
+  background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
   color: white;
-  border: none;
+  border: 1px solid rgba(var(--primary-rgb), 0.12);
   padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
+  border-radius: 16px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 14px;
+  box-shadow: 0 14px 28px rgba(var(--primary-rgb), 0.2);
 }
 
 .btn-primary:hover {
-  background: var(--primary-200);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 18px 32px rgba(var(--primary-rgb), 0.24);
 }
 
 .btn-secondary {
-  background: var(--accent-100);
-  color: white;
-  border: none;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--text-100);
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
   padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 500;
+  border-radius: 16px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 14px;
+  box-shadow: var(--shadow-soft);
 }
 
 .btn-secondary:hover {
-  background: var(--accent-200);
+  border-color: rgba(var(--primary-rgb), 0.22);
+  color: var(--primary-100);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .text-primary {
@@ -153,46 +222,49 @@ button:focus-visible {
 }
 
 .rounded {
-  border-radius: 8px;
+  border-radius: 16px;
 }
 
 .shadow {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-soft);
 }
 
 .shadow-lg {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-strong);
 }
 
-/* 響應式間距 */
 .p-2 {
   padding: 0.5rem;
 }
+
 .p-3 {
   padding: 1rem;
 }
+
 .p-4 {
   padding: 1.5rem;
 }
+
 .m-2 {
   margin: 0.5rem;
 }
+
 .m-3 {
   margin: 1rem;
 }
+
 .m-4 {
   margin: 1.5rem;
 }
 
-/* 動畫效果 */
 .fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+  animation: fadeIn 0.45s ease-out;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -200,25 +272,27 @@ button:focus-visible {
   }
 }
 
-/* 響應式文字大小 */
 .text-sm {
   font-size: 0.875rem;
 }
+
 .text-base {
   font-size: 1rem;
 }
+
 .text-lg {
   font-size: 1.125rem;
 }
+
 .text-xl {
   font-size: 1.25rem;
 }
 
-/* 響應式設計增強 */
 @media (max-width: 768px) {
   .text-xl {
     font-size: 1.125rem;
   }
+
   .text-lg {
     font-size: 1rem;
   }
@@ -230,7 +304,17 @@ button:focus-visible {
   }
 }
 
-/* NProgress 自定義樣式 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 #nprogress {
   pointer-events: none;
 }
@@ -243,53 +327,20 @@ button:focus-visible {
   left: 0;
   width: 100%;
   height: 3px;
+  box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.45);
 }
 
 #nprogress .peg {
   display: block;
   position: absolute;
-  right: 0px;
+  right: 0;
   width: 100px;
   height: 100%;
   box-shadow: 0 0 10px var(--primary-100), 0 0 5px var(--primary-100);
   opacity: 1;
-  transform: rotate(3deg) translate(0px, -4px);
+  transform: rotate(3deg) translate(0, -4px);
 }
 
 #nprogress .spinner {
   display: block;
-  position: fixed;
-  z-index: 1031;
-  top: 15px;
-  right: 15px;
-}
-
-#nprogress .spinner-icon {
-  width: 18px;
-  height: 18px;
-  box-sizing: border-box;
-  border: solid 2px transparent;
-  border-top-color: var(--primary-100);
-  border-left-color: var(--primary-100);
-  border-radius: 50%;
-  animation: nprogress-spinner 400ms linear infinite;
-}
-
-.nprogress-custom-parent {
-  overflow: hidden;
-  position: relative;
-}
-
-.nprogress-custom-parent #nprogress .spinner,
-.nprogress-custom-parent #nprogress .bar {
-  position: absolute;
-}
-
-@keyframes nprogress-spinner {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }

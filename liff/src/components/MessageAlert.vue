@@ -40,18 +40,20 @@ const getIcon = () => {
 <style scoped>
 .message-alert {
     margin-top: 20px;
-    padding: 12px 16px;
-    border-radius: 8px;
-    text-align: center;
+    padding: 14px 18px;
+    border-radius: 20px;
+    text-align: left;
     font-weight: 500;
     border: 1px solid;
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-soft);
 }
 
 .message-content {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 10px;
 }
 
 .message-icon {
@@ -60,29 +62,30 @@ const getIcon = () => {
 
 .message-text {
     flex: 1;
+    line-height: 1.5;
 }
 
 .message-alert.success {
-    background: var(--primary-300);
+    background: linear-gradient(135deg, rgba(255, 243, 176, 0.82), rgba(255, 255, 255, 0.92));
     color: var(--text-100);
-    border-color: var(--primary-100);
+    border-color: rgba(var(--primary-rgb), 0.2);
 }
 
 .message-alert.error {
-    background: #f8d7da;
+    background: linear-gradient(135deg, rgba(248, 215, 218, 0.92), rgba(255, 245, 246, 0.96));
     color: #721c24;
-    border-color: #f5c6cb;
+    border-color: rgba(220, 53, 69, 0.24);
 }
 
 .message-alert.warning {
-    background: var(--primary-300);
+    background: linear-gradient(135deg, rgba(255, 243, 176, 0.88), rgba(255, 250, 236, 0.96));
     color: var(--text-100);
-    border-color: var(--primary-200);
+    border-color: rgba(var(--primary-rgb), 0.18);
 }
 
 .message-alert.info {
-    background: var(--bg-100);
+    background: linear-gradient(135deg, rgba(161, 226, 255, 0.22), rgba(255, 255, 255, 0.92));
     color: var(--text-100);
-    border-color: var(--accent-100);
+    border-color: rgba(var(--accent-rgb), 0.18);
 }
 </style>

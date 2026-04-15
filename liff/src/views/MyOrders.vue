@@ -482,44 +482,47 @@ onMounted(() => {
 .my-orders-container {
     min-height: 100vh;
     background: var(--bg-50);
-    padding-bottom: 80px;
+    padding-bottom: 96px;
 }
 
 /* 頂部標題區域 */
 .header {
-    background: white;
-    padding: 16px 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.9), rgba(var(--primary-rgb), 0.72));
+    padding: 18px 20px;
+    box-shadow: 0 16px 30px rgba(var(--primary-rgb), 0.16);
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: sticky;
     top: 0;
     z-index: 100;
+    backdrop-filter: blur(18px);
 }
 
 .back-btn {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.24);
     padding: 8px;
     cursor: pointer;
-    border-radius: 8px;
-    transition: background-color 0.3s;
+    border-radius: 14px;
+    transition: background-color 0.3s, transform 0.25s;
+    box-shadow: none;
 }
 
 .back-btn:hover {
-    background: var(--bg-100);
+    background: rgba(255, 255, 255, 0.24);
+    transform: translateY(-1px);
 }
 
 .back-icon {
     font-size: 20px;
-    color: var(--text-100);
+    color: white;
 }
 
 .title {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 600;
-    color: var(--text-100);
+    color: white;
     margin: 0;
 }
 
@@ -529,9 +532,13 @@ onMounted(() => {
 
 /* 篩選區域 */
 .filter-section {
-    background: white;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--bg-200);
+    position: sticky;
+    top: 74px;
+    z-index: 90;
+    background: rgba(255, 250, 245, 0.78);
+    padding: 14px 20px 16px;
+    border-bottom: 1px solid rgba(116, 80, 66, 0.08);
+    backdrop-filter: blur(18px);
 }
 
 .status-tabs {
@@ -539,42 +546,52 @@ onMounted(() => {
     gap: 8px;
     overflow-x: auto;
     padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.status-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .status-tab {
-    background: var(--bg-100);
-    border: 1px solid var(--bg-200);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(116, 80, 66, 0.12);
     color: var(--text-200);
-    padding: 8px 16px;
-    border-radius: 20px;
+    padding: 9px 16px;
+    border-radius: 999px;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.3s;
     white-space: nowrap;
     flex-shrink: 0;
+    box-shadow: 0 8px 18px rgba(80, 58, 48, 0.06);
 }
 
 .status-tab.active {
-    background: var(--primary-100);
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     color: white;
     border-color: var(--primary-100);
 }
 
 .status-tab:hover:not(.active) {
-    background: var(--bg-200);
+    border-color: rgba(var(--primary-rgb), 0.18);
+    color: var(--primary-100);
 }
 
 /* 訂單區域 */
 .orders-section {
-    padding: 16px 20px;
+    padding: 20px;
+    max-width: 760px;
+    margin: 0 auto;
 }
 
 .no-orders {
     text-align: center;
     padding: 60px 20px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 249, 242, 0.88));
+    border-radius: 28px;
+    box-shadow: var(--shadow-medium);
+    border: 1px solid var(--border-soft);
 }
 
 .empty-icon {
@@ -595,15 +612,15 @@ onMounted(() => {
 }
 
 .order-btn {
-    background: var(--primary-100);
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     color: white;
     border: none;
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: 999px;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.25s;
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -611,6 +628,7 @@ onMounted(() => {
 
 .order-btn:hover {
     background: var(--primary-200);
+    transform: translateY(-1px);
 }
 
 .btn-icon {
@@ -621,15 +639,16 @@ onMounted(() => {
 .orders-list {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
 }
 
 .order-card {
-    background: white;
-    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 249, 242, 0.9));
+    border-radius: 28px;
     padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--bg-200);
+    box-shadow: var(--shadow-medium);
+    border: 1px solid var(--border-soft);
+    overflow: hidden;
 }
 
 .order-header {
@@ -644,7 +663,7 @@ onMounted(() => {
 }
 
 .order-id {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--text-100);
     margin: 0 0 4px 0;
@@ -667,10 +686,11 @@ onMounted(() => {
 }
 
 .status-badge {
-    padding: 4px 12px;
-    border-radius: 12px;
+    padding: 6px 12px;
+    border-radius: 999px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .status-pending {
@@ -705,11 +725,11 @@ onMounted(() => {
 
 /* 訂單商品列表 */
 .order-items {
-    border: 1px solid var(--bg-200);
-    border-radius: 8px;
-    padding: 12px;
+    border: 1px solid rgba(116, 80, 66, 0.08);
+    border-radius: 20px;
+    padding: 14px 14px 8px;
     margin-bottom: 16px;
-    background: var(--bg-50);
+    background: linear-gradient(180deg, rgba(255, 251, 247, 0.92), rgba(247, 240, 235, 0.78));
 }
 
 .order-item {
@@ -756,7 +776,8 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
     padding-top: 16px;
-    border-top: 1px solid var(--bg-200);
+    border-top: 1px solid rgba(116, 80, 66, 0.1);
+    gap: 12px;
 }
 
 .order-total {
@@ -776,33 +797,37 @@ onMounted(() => {
 .order-actions {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .detail-btn,
 .cancel-btn,
 .reorder-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 9px 14px;
+    border-radius: 14px;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.3s;
     border: 1px solid;
+    box-shadow: none;
 }
 
 .detail-btn {
-    background: var(--bg-100);
+    background: rgba(255, 255, 255, 0.8);
     color: var(--text-100);
-    border-color: var(--bg-200);
+    border-color: rgba(116, 80, 66, 0.12);
 }
 
 .detail-btn:hover {
-    background: var(--bg-200);
+    background: rgba(255, 255, 255, 1);
+    border-color: rgba(var(--primary-rgb), 0.18);
 }
 
 .cancel-btn {
-    background: #f8d7da;
+    background: rgba(248, 215, 218, 0.92);
     color: #721c24;
-    border-color: #f5c6cb;
+    border-color: rgba(220, 53, 69, 0.14);
 }
 
 .cancel-btn:hover {
@@ -810,7 +835,7 @@ onMounted(() => {
 }
 
 .reorder-btn {
-    background: var(--primary-100);
+    background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
     color: white;
     border-color: var(--primary-100);
 }
@@ -826,7 +851,7 @@ onMounted(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(36, 23, 18, 0.46);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -835,13 +860,14 @@ onMounted(() => {
 }
 
 .modal-content {
-    background: white;
-    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 242, 0.96));
+    border-radius: 28px;
     max-width: 500px;
     width: 100%;
     max-height: 80vh;
     overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-strong);
+    border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 .modal-header {
@@ -849,7 +875,7 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--bg-200);
+    border-bottom: 1px solid rgba(116, 80, 66, 0.1);
     margin-bottom: 20px;
 }
 
@@ -861,18 +887,19 @@ onMounted(() => {
 }
 
 .close-btn {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(116, 80, 66, 0.12);
     font-size: 24px;
     color: var(--text-200);
     cursor: pointer;
     padding: 4px;
-    border-radius: 4px;
+    border-radius: 12px;
     transition: background-color 0.3s;
+    box-shadow: none;
 }
 
 .close-btn:hover {
-    background: var(--bg-100);
+    background: white;
 }
 
 .modal-body {
@@ -898,7 +925,7 @@ onMounted(() => {
     color: var(--text-100);
     margin: 0 0 12px 0;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--bg-200);
+    border-bottom: 1px solid rgba(116, 80, 66, 0.1);
 }
 
 .detail-row {
@@ -972,12 +999,13 @@ onMounted(() => {
 }
 
 .detail-notes {
-    background: var(--bg-50);
+    background: rgba(255, 252, 247, 0.92);
     padding: 12px;
-    border-radius: 8px;
+    border-radius: 16px;
     color: var(--text-100);
     line-height: 1.5;
     margin: 0;
+    border: 1px solid rgba(116, 80, 66, 0.08);
 }
 
 /* 取消訂單確認彈窗 */
@@ -1005,12 +1033,13 @@ onMounted(() => {
 .cancel-reason-input {
     width: 100%;
     min-height: 80px;
-    padding: 12px;
-    border: 1px solid var(--bg-200);
-    border-radius: 8px;
+    padding: 14px 16px;
+    border: 1px solid rgba(126, 94, 79, 0.16);
+    border-radius: 18px;
     font-size: 14px;
     resize: vertical;
     box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.82);
 }
 
 .cancel-reason-input:focus {
@@ -1019,13 +1048,14 @@ onMounted(() => {
 }
 
 .cancel-btn-secondary {
-    background: var(--bg-100);
+    background: rgba(255, 255, 255, 0.88);
     color: var(--text-100);
-    border: 1px solid var(--bg-200);
+    border: 1px solid rgba(116, 80, 66, 0.12);
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 16px;
     cursor: pointer;
     transition: background-color 0.3s;
+    box-shadow: none;
 }
 
 .cancel-btn-secondary:hover {
@@ -1037,7 +1067,7 @@ onMounted(() => {
     color: white;
     border: 1px solid #dc3545;
     padding: 10px 20px;
-    border-radius: 8px;
+    border-radius: 16px;
     cursor: pointer;
     transition: background-color 0.3s;
 }
@@ -1055,6 +1085,19 @@ onMounted(() => {
 
 /* 響應式設計 */
 @media (max-width: 600px) {
+    .header {
+        padding: 16px;
+    }
+
+    .filter-section {
+        top: 72px;
+        padding: 12px 16px 14px;
+    }
+
+    .orders-section {
+        padding: 16px;
+    }
+
     .order-footer {
         flex-direction: column;
         gap: 12px;
@@ -1062,15 +1105,22 @@ onMounted(() => {
     }
 
     .order-actions {
-        justify-content: center;
+        justify-content: flex-start;
+    }
+
+    .order-actions button {
+        flex: 1 1 calc(50% - 8px);
     }
 
     .modal-overlay {
-        padding: 10px;
+        padding: 0;
+        align-items: flex-end;
     }
 
     .modal-content {
         max-height: 90vh;
+        border-radius: 28px 28px 0 0;
+        max-width: none;
     }
 
     .status-tabs {
