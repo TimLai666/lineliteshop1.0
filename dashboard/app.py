@@ -49,7 +49,9 @@ def normalize_orders(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
     df = df.copy()
-    df["time"] = pd.to_datetime(df["time"], errors="coerce")
+    df["time"] = pd.to_datetime(df["time"], errors="coerce", utc=True).dt.tz_convert(
+        "Asia/Taipei"
+    ).dt.tz_localize(None)
     df["totalAmount"] = to_number(df.get("totalAmount", pd.Series(dtype=float)))
     df["status"] = df["status"].fillna("").astype(str)
     df["item_count"] = df["products"].apply(
