@@ -33,6 +33,4 @@ COPY --from=backend-builder /app/backend/main ./main
 # 從前端構建階段複製前端構建文件
 COPY --from=frontend-builder /app/dist ./liff/dist
 
-COPY .env .
-
 CMD [ "./main" ]

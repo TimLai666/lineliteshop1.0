@@ -1,6 +1,23 @@
 services:
   app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     image: lineliteshop:latest
     ports:
       - "127.0.0.1:10100:10100"
+    env_file: .env
+    environment:
+      - DASHBOARD_URL=http://dashboard:8501
+    depends_on:
+      - dashboard
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: ./dashboard
+    image: lineliteshop-dashboard:latest
+    expose:
+      - "8501"
+    env_file: .env
     restart: unless-stopped

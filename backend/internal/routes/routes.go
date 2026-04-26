@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"log"
+
 	"lineliteshop1.0/internal/config"
 	"lineliteshop1.0/internal/handlers"
 	"lineliteshop1.0/internal/middleware"
@@ -12,6 +14,14 @@ import (
 func SetupRoutes(r *gin.Engine, handler *handlers.Handler) {
 	// 健康檢查端點
 	r.GET("/", handler.HealthCheck)
+
+	// Streamlit 儀表板反向代理（含 WebSocket）
+	if dashboardProxy, err := handlers.NewDashboardProxy(config.DASHBOARD_URL); err != nil {
+		log.Printf("無法初始化儀表板代理: %v", err)
+	} else {
+		r.Any("/dashboard", dashboardProxy)
+		r.Any("/dashboard/*proxyPath", dashboardProxy)
+	}
 
 	apiGroup := r.Group("/api")
 	{
