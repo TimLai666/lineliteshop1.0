@@ -13,6 +13,23 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 API_URL = os.getenv("GOOGLE_SHEET_API_URL", "")
 API_TOKEN = os.getenv("GOOGLE_SHEET_API_TOKEN", "")
 
+RFM_MEMBER_TYPES = [
+    {"代碼": "111", "會員類型": "需開發會員", "說明": "分數低於平均。", "行銷建議": "首購折扣、新手任務"},
+    {"代碼": "112", "會員類型": "重要挽留會員", "說明": "消費金額高，但近期未上門，且消費頻率低。", "行銷建議": "回流禮、Win-back"},
+    {"代碼": "121", "會員類型": "一般保持會員", "說明": "消費頻率高，但近期未上門，且消費金額少。", "行銷建議": "集點、社群互動"},
+    {"代碼": "122", "會員類型": "重要保持會員", "說明": "消費頻率高，消費金額高，但近期未上門。", "行銷建議": "VIP 搶先購、升等"},
+    {"代碼": "211", "會員類型": "流失會員", "說明": "近期有消費，消費頻率與金額均低。", "行銷建議": "問卷釐因、定向優惠"},
+    {"代碼": "212", "會員類型": "重要發展會員", "說明": "近期有消費，消費頻率低，但消費金額高。", "行銷建議": "訂閱制、高客單加購"},
+    {"代碼": "221", "會員類型": "一般價值會員", "說明": "近期有消費，且消費頻率高，但消費金額低。", "行銷建議": "加價升級、遊戲化"},
+    {"代碼": "222", "會員類型": "重要價值會員", "說明": "近期有消費，且消費頻率和金額都高。", "行銷建議": "尊榮計畫、共創活動"},
+]
+
+CAI_TREND_DESCRIPTION = {
+    "活躍": "顧客回購的時間間隔越來越短，活躍度持續上升。",
+    "固定": "顧客回購的時間間隔大致穩定，行為平穩。",
+    "沉寂": "顧客回購的時間間隔越來越長，正在遠離。",
+}
+
 st.set_page_config(page_title="LineLiteShop 商家儀表板", page_icon="🛒", layout="wide")
 
 
@@ -318,9 +335,59 @@ elif page == "顧客":
                 )
             ]
 
-        c1, c2 = st.columns(2)
+        def nonempty(series: pd.Series) -> pd.Series:
+            return series.replace("", pd.NA).dropna()
+
+        rfm_series = nonempty(view["rfm_member_type"]) if "rfm_member_type" in view.columns else pd.Series(dtype=str)
+        cai_series = nonempty(view["cai_trend"]) if "cai_trend" in view.columns else pd.Series(dtype=str)
+        quadrant_series = nonempty(view["quadrant"].astype(str)) if "quadrant" in view.columns else pd.Series(dtype=str)
+
+        important_types = {"重要價值會員", "重要保持會員", "重要發展會員", "重要挽留會員"}
+        c1, c2, c3, c4, c5 = st.columns(5)
         c1.metric("顧客總數", len(customers))
         c2.metric("篩選結果", len(view))
+        c3.metric("重要會員", int(rfm_series.isin(important_types).sum()))
+        c4.metric("活躍 (CAI)", int((cai_series == "活躍").sum()))
+        c5.metric("沉寂 (CAI)", int((cai_series == "沉寂").sum()))
+
+        if not rfm_series.empty or not cai_series.empty or not quadrant_series.empty:
+            st.subheader("RFM／CAI／象限分佈")
+            col_r, col_c, col_q = st.columns(3)
+            with col_r:
+                st.caption("RFM 會員類型")
+                if not rfm_series.empty:
+                    rfm_counts = rfm_series.value_counts().reset_index()
+                    rfm_counts.columns = ["RFM會員類型", "人數"]
+                    fig = px.bar(rfm_counts, x="人數", y="RFM會員類型", orientation="h")
+                    fig.update_layout(
+                        height=320,
+                        margin=dict(l=0, r=0, t=10, b=0),
+                        yaxis={"categoryorder": "total ascending"},
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("無資料")
+            with col_c:
+                st.caption("CAI 購買行為趨勢")
+                if not cai_series.empty:
+                    cai_counts = cai_series.value_counts().reset_index()
+                    cai_counts.columns = ["CAI購買行為趨勢", "人數"]
+                    fig = px.pie(cai_counts, names="CAI購買行為趨勢", values="人數", hole=0.4)
+                    fig.update_layout(height=320, margin=dict(l=0, r=0, t=10, b=0))
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("無資料")
+            with col_q:
+                st.caption("象限分類")
+                if not quadrant_series.empty:
+                    q_counts = quadrant_series.value_counts().reset_index()
+                    q_counts.columns = ["象限", "人數"]
+                    q_counts = q_counts.sort_values("象限")
+                    fig = px.bar(q_counts, x="象限", y="人數")
+                    fig.update_layout(height=320, margin=dict(l=0, r=0, t=10, b=0))
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("無資料")
 
         if "gender" in view.columns and view["gender"].notna().any():
             col_a, col_b = st.columns(2)
@@ -345,6 +412,45 @@ elif page == "顧客":
                         st.plotly_chart(fig, use_container_width=True)
 
         st.subheader("顧客列表")
-        st.dataframe(view, use_container_width=True, hide_index=True)
+        column_rename = {
+            "id": "顧客ID",
+            "name": "姓名",
+            "birthday": "生日",
+            "phone": "電話",
+            "email": "Email",
+            "occupation": "職業",
+            "gender": "性別",
+            "income_range": "月收入區間",
+            "household_size": "同住人口數",
+            "note": "附註",
+            "rfm_member_type": "RFM會員類型",
+            "cai_trend": "CAI購買行為趨勢",
+            "quadrant": "象限分類",
+        }
+        ordered_cols = [c for c in column_rename.keys() if c in view.columns]
+        display_view = view[ordered_cols].rename(columns=column_rename) if ordered_cols else view
+        st.dataframe(display_view, use_container_width=True, hide_index=True)
+
+        st.divider()
+        with st.expander("📘 RFM 會員類型對照表", expanded=False):
+            st.caption(
+                "RFM 三碼分別代表 Recency（近期消費）／Frequency（消費頻率）／Monetary（消費金額）；"
+                "1 為低於平均、2 為高於平均。"
+            )
+            st.dataframe(
+                pd.DataFrame(RFM_MEMBER_TYPES),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+        with st.expander("📗 CAI 購買行為趨勢說明", expanded=False):
+            st.markdown(
+                "**CAI（Customer Activity Index）** 衡量顧客回購節奏的變化趨勢：越「活躍」"
+                "代表該顧客回購的時間間隔越來越短；越「沉寂」則代表回購間隔越來越長。"
+            )
+            cai_table = pd.DataFrame(
+                [{"趨勢": k, "說明": v} for k, v in CAI_TREND_DESCRIPTION.items()]
+            )
+            st.dataframe(cai_table, use_container_width=True, hide_index=True)
 
 st.sidebar.caption(f"資料快取 120 秒｜{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

@@ -9,7 +9,12 @@ const CUSTOMER_FIELD_HEADERS = {
   income_range: "月收入區間",
   household_size: "同住人口數",
   note: "附註",
+  rfm_member_type: "RFM會員類型",
+  cai_trend: "CAI購買行為趨勢",
+  quadrant: "象限分類",
 };
+
+const CUSTOMER_READ_ONLY_FIELDS = ["rfm_member_type", "cai_trend", "quadrant"];
 
 const REQUIRED_CUSTOMER_FIELDS = ["id", "name", "birthday", "phone", "email"];
 
@@ -86,6 +91,9 @@ function buildCustomerApiObjectFromRow(row, headerMap) {
     income_range: customer.income_range || "",
     household_size: customer.household_size || "",
     note: customer.note || "",
+    rfm_member_type: customer.rfm_member_type || "",
+    cai_trend: customer.cai_trend || "",
+    quadrant: customer.quadrant === 0 ? 0 : (customer.quadrant || ""),
   };
 }
 
