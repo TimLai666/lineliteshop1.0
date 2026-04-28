@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
 
 	"lineliteshop1.0/internal/config"
@@ -56,9 +57,9 @@ func generateShortID() uint {
 	return ticketNumber
 }
 
-func AddOrder(order models.Order) (uint, error) {
+func AddOrder(order models.Order) (string, error) {
 	// 產生基於時間戳的簡短ID
-	orderId := generateShortID()
+	orderId := strconv.FormatUint(uint64(generateShortID()), 10)
 	order.ID = orderId
 	order.Status = normalizeOutgoingOrderStatus(order.Status)
 

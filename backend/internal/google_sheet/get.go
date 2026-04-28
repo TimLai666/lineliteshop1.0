@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"lineliteshop1.0/internal/config"
@@ -470,7 +471,7 @@ func parseCustomer(itemMap map[string]any) (*models.Customer, error) {
 	}, nil
 }
 
-func GetOrderByID(id uint) (*models.Order, error) {
+func GetOrderByID(id string) (*models.Order, error) {
 	// 呼叫 Google Sheet API 來獲取訂單資料
 	apiResponse, err := callGetApi("ORDERS")
 	if err != nil {
@@ -491,20 +492,8 @@ func GetOrderByID(id uint) (*models.Order, error) {
 			return nil, errors.New("invalid item format in order data")
 		}
 
-		// 檢查是否是目標訂單
-		var itemID uint
-		switch idVal := itemMap["id"].(type) {
-		case string:
-			uint64Id, err := strconv.ParseUint(idVal, 10, 32)
-			if err != nil {
-				continue
-			}
-			itemID = uint(uint64Id)
-		case float64:
-			itemID = uint(idVal)
-		case int:
-			itemID = uint(idVal)
-		default:
+		itemID := stringifyOrderID(itemMap["id"])
+		if itemID == "" {
 			continue
 		}
 
@@ -627,172 +616,36 @@ func GetOrders() ([]models.Order, error) {
 	return orders, nil
 }
 
-// parseOrder 解析單個訂單項目
-func parseOrder(itemMap map[string]any) (*models.Order, error) {
-	// ID 是必填欄位
-	id := uint(0) // 預設 ID 為 0
-	switch idVal := itemMap["id"].(type) {
+// stringifyOrderID 將訂單 ID 統一轉成字串，支援數字、字串等格式。空值或不支援的型別回傳 ""。
+func stringifyOrderID(idVal any) string {
+	switch v := idVal.(type) {
 	case string:
-		// 如果 ID 是字符串格式，轉換為整數
-		uint64Id, err := strconv.ParseUint(idVal, 10, 32)
-		if err != nil {
-			return nil, errors.New("invalid id format in order data")
-		}
-		id = uint(uint64Id)
+		return strings.TrimSpace(v)
 	case float64:
-		// 如果 ID 是浮點數格式，轉換為整數
-		id = uint(idVal)
+		// JSON 數字預設是 float64；若沒有小數部分，去掉小數點以避免 "12345.000000"
+		if v == float64(int64(v)) {
+			return strconv.FormatInt(int64(v), 10)
+		}
+		return strconv.FormatFloat(v, 'f', -1, 64)
 	case int:
-		// 如果 ID 是整數格式，直接使用
-		id = uint(idVal)
+		return strconv.Itoa(v)
+	case int64:
+		return strconv.FormatInt(v, 10)
+	case uint:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint64:
+		return strconv.FormatUint(v, 10)
+	case bool, nil:
+		return ""
 	default:
-		return nil, errors.New("invalid id format in order data")
+		return fmt.Sprintf("%v", v)
 	}
-	// 其他欄位為選填，如果不存在或格式錯誤則設為空字串
-	customerID := ""
-	if custIDVal, exists := itemMap["customer_id"]; exists {
-		if c, ok := custIDVal.(string); ok {
-			customerID = c
-		}
-	}
-
-	customerName := ""
-	if custNameVal, exists := itemMap["customer_name"]; exists {
-		if c, ok := custNameVal.(string); ok {
-			customerName = c
-		}
-	}
-
-	status := ""
-	if statusVal, exists := itemMap["status"]; exists {
-		if s, ok := statusVal.(string); ok {
-			status = s
-		}
-	}
-
-	totalAmount := 0
-	if totalVal, exists := itemMap["totalAmount"]; exists {
-		switch v := totalVal.(type) {
-		case float64:
-			totalAmount = int(v)
-		case int:
-			totalAmount = v
-		case string:
-			if v == "" {
-				totalAmount = 0 // 如果是空字符串，則設置為 0
-			} else {
-				// 嘗試將字符串轉換為整數
-				if t, err := strconv.Atoi(v); err == nil {
-					totalAmount = t
-				} else {
-					return nil, errors.New("invalid totalAmount format in order data")
-				}
-			}
-		default:
-			return nil, errors.New("invalid totalAmount format in order data")
-		}
-	}
-
-	var products []models.Item
-	if productsVal, exists := itemMap["products"]; exists {
-		if pList, ok := productsVal.([]any); ok {
-			for _, pItem := range pList {
-				pMap, ok := pItem.(map[string]any)
-				if !ok {
-					continue // 如果格式不正確，跳過這個產品
-				}
-
-				productName, _ := pMap["product"].(string)
-
-				// 處理 quantity 的多種格式
-				quantity := 0
-				if qtyVal, exists := pMap["quantity"]; exists {
-					switch qty := qtyVal.(type) {
-					case float64:
-						quantity = int(qty)
-					case int:
-						quantity = qty
-					case string:
-						if qty == "" {
-							quantity = 0
-						} else {
-							if q, err := strconv.Atoi(qty); err == nil {
-								quantity = q
-							}
-						}
-					default:
-						quantity = 0
-					}
-				}
-
-				// 獲取商品價格
-				price := 0
-				if productName != "" {
-					if product, err := GetProductByName(productName); err == nil && product != nil {
-						price = int(product.Price)
-					}
-				}
-
-				products = append(products, models.Item{
-					Product:  productName,
-					Quantity: quantity,
-					Price:    price,
-				})
-			}
-		}
-	}
-
-	orderTime := ""
-	if dateVal, exists := itemMap["time"]; exists {
-		orderTime = parseDate(dateVal)
-	}
-
-	customerNote := ""
-	if noteVal, exists := itemMap["customer_note"]; exists {
-		if note, ok := noteVal.(string); ok {
-			customerNote = note
-		}
-	}
-
-	internalNote := ""
-	if noteVal, exists := itemMap["internal_note"]; exists {
-		if note, ok := noteVal.(string); ok {
-			internalNote = note
-		}
-	}
-
-	return &models.Order{
-		ID:           id,
-		CustomerID:   customerID,
-		CustomerName: customerName,
-		Status:       normalizeOrderStatus(status),
-		Time:         orderTime,
-		Products:     products,
-		TotalAmount:  totalAmount,
-		CustomerNote: customerNote,
-		InternalNote: internalNote,
-	}, nil
 }
 
 // parseOrderWithPrices 解析單個訂單項目，使用預先查詢的商品價格映射
 func parseOrderWithPrices(itemMap map[string]any, productPrices map[string]int) (*models.Order, error) {
-	// ID 是必填欄位
-	id := uint(0) // 預設 ID 為 0
-	switch idVal := itemMap["id"].(type) {
-	case string:
-		// 如果 ID 是字符串格式，轉換為整數
-		uint64Id, err := strconv.ParseUint(idVal, 10, 32)
-		if err != nil {
-			return nil, errors.New("invalid id format in order data")
-		}
-		id = uint(uint64Id)
-	case float64:
-		// 如果 ID 是浮點數格式，轉換為整數
-		id = uint(idVal)
-	case int:
-		// 如果 ID 是整數格式，直接使用
-		id = uint(idVal)
-	default:
+	id := stringifyOrderID(itemMap["id"])
+	if id == "" {
 		return nil, errors.New("invalid id format in order data")
 	}
 	// 其他欄位為選填，如果不存在或格式錯誤則設為空字串

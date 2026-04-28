@@ -3,7 +3,6 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"lineliteshop1.0/internal/google_sheet"
@@ -187,15 +186,8 @@ func (h *Handler) HandleGetOrder(c *gin.Context) {
 		return
 	}
 
-	orderIdInt, err := strconv.Atoi(orderID)
-	if err != nil {
-		log.Printf("無效的訂單 ID: %v", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
-		return
-	}
-
 	// 呼叫 Google Sheet API 獲取特定訂單資料
-	order, err := google_sheet.GetOrderByID(uint(orderIdInt))
+	order, err := google_sheet.GetOrderByID(orderID)
 	if err != nil {
 		log.Printf("獲取訂單 %s 資料失敗: %v", orderID, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get order"})
@@ -252,7 +244,7 @@ func (h *Handler) HandleUpdateOrder(c *gin.Context) {
 		return
 	}
 
-	if order.ID == 0 {
+	if order.ID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Order ID is required for update"})
 		return
 	}
