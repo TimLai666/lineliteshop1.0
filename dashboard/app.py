@@ -234,6 +234,108 @@ def add_rfm_quadrant_planes(fig: go.Figure, plot_df: pd.DataFrame) -> None:
     )
 
 
+def nonempty_values(series: pd.Series) -> pd.Series:
+    return (
+        series.fillna("")
+        .astype(str)
+        .str.strip()
+        .replace("", pd.NA)
+        .dropna()
+    )
+
+
+def categorical_counts(
+    df: pd.DataFrame, column: str, label: str, top_n: int | None = None
+) -> pd.DataFrame:
+    if column not in df.columns:
+        return pd.DataFrame(columns=[label, "人數"])
+
+    counts = nonempty_values(df[column]).value_counts().reset_index()
+    counts.columns = [label, "人數"]
+    if top_n:
+        counts = counts.head(top_n)
+    return counts
+
+
+def parse_birthdays(df: pd.DataFrame) -> pd.Series:
+    if "birthday" not in df.columns:
+        return pd.Series(dtype="datetime64[ns]")
+    birthdays = pd.to_datetime(df["birthday"], errors="coerce", utc=True)
+    return birthdays.dt.tz_convert("Asia/Taipei").dt.tz_localize(None).dropna()
+
+
+def age_bucket_counts(birthdays: pd.Series) -> pd.DataFrame:
+    if birthdays.empty:
+        return pd.DataFrame(columns=["年齡層", "人數"])
+
+    today = pd.Timestamp(datetime.now().date())
+    ages = ((today - birthdays.dt.normalize()).dt.days / 365.2425).astype(int)
+    ages = ages[(ages >= 0) & (ages <= 120)]
+    if ages.empty:
+        return pd.DataFrame(columns=["年齡層", "人數"])
+
+    labels = ["未滿18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"]
+    buckets = pd.cut(
+        ages,
+        bins=[0, 18, 25, 35, 45, 55, 65, 121],
+        right=False,
+        labels=labels,
+    )
+    return (
+        buckets.value_counts(sort=False)
+        .rename_axis("年齡層")
+        .reset_index(name="人數")
+    )
+
+
+def birth_month_counts(birthdays: pd.Series) -> pd.DataFrame:
+    if birthdays.empty:
+        return pd.DataFrame(columns=["生日月份", "人數"])
+
+    month_labels = [f"{month:02d}月" for month in range(1, 13)]
+    month_series = birthdays.dt.month.map(lambda month: f"{month:02d}月")
+    counts = month_series.value_counts().reindex(month_labels, fill_value=0)
+    return counts.rename_axis("生日月份").reset_index(name="人數")
+
+
+def household_size_counts(df: pd.DataFrame) -> pd.DataFrame:
+    if "household_size" not in df.columns:
+        return pd.DataFrame(columns=["同住人口數", "人數"])
+
+    values = pd.to_numeric(df["household_size"], errors="coerce").dropna()
+    values = values[values >= 0].astype(int)
+    if values.empty:
+        return pd.DataFrame(columns=["同住人口數", "人數"])
+
+    return (
+        values.value_counts()
+        .sort_index()
+        .rename_axis("同住人口數")
+        .reset_index(name="人數")
+    )
+
+
+def profile_completeness(df: pd.DataFrame) -> pd.DataFrame:
+    fields = {
+        "phone": "電話",
+        "email": "Email",
+        "note": "附註",
+    }
+    rows = []
+    total = len(df)
+    if total == 0:
+        return pd.DataFrame(columns=["欄位", "狀態", "人數"])
+
+    for column, label in fields.items():
+        if column not in df.columns:
+            continue
+        filled = int(nonempty_values(df[column]).shape[0])
+        rows.append({"欄位": label, "狀態": "已填寫", "人數": filled})
+        rows.append({"欄位": label, "狀態": "未填寫", "人數": total - filled})
+
+    return pd.DataFrame(rows, columns=["欄位", "狀態", "人數"])
+
+
 # ---------- Sidebar ----------
 st.sidebar.title("🛒 LineLiteShop")
 st.sidebar.caption("商家儀表板")
@@ -628,27 +730,92 @@ elif page == "顧客":
                 else:
                     st.info("無資料")
 
-        if "gender" in view.columns and view["gender"].notna().any():
+        demographic_columns = {"birthday", "occupation", "gender", "income_range", "household_size"}
+        if demographic_columns.intersection(view.columns):
+            st.subheader("顧客人口統計分析")
+            birthdays = parse_birthdays(view)
+
             col_a, col_b = st.columns(2)
             with col_a:
-                st.subheader("性別分佈")
-                g = view["gender"].replace("", pd.NA).dropna().value_counts().reset_index()
-                g.columns = ["gender", "count"]
-                if not g.empty:
-                    fig = px.pie(g, names="gender", values="count", hole=0.4)
+                st.caption("性別分佈")
+                gender_counts = categorical_counts(view, "gender", "性別")
+                if not gender_counts.empty:
+                    fig = px.pie(gender_counts, names="性別", values="人數", hole=0.45)
                     fig.update_layout(height=300, margin=dict(l=0, r=0, t=10, b=0))
                     st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("無性別資料")
+
             with col_b:
-                if "income_range" in view.columns:
-                    st.subheader("收入區間")
-                    inc = (
-                        view["income_range"].replace("", pd.NA).dropna().value_counts().reset_index()
+                st.caption("年齡層分佈")
+                age_counts = age_bucket_counts(birthdays)
+                if not age_counts.empty:
+                    fig = px.bar(age_counts, x="年齡層", y="人數")
+                    fig.update_layout(height=300, margin=dict(l=0, r=0, t=10, b=0))
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("無可解析生日資料")
+
+            col_c, col_d = st.columns(2)
+            with col_c:
+                st.caption("職業分佈 Top 12")
+                occupation_counts = categorical_counts(view, "occupation", "職業", top_n=12)
+                if not occupation_counts.empty:
+                    fig = px.bar(
+                        occupation_counts.sort_values("人數"),
+                        x="人數",
+                        y="職業",
+                        orientation="h",
                     )
-                    inc.columns = ["income_range", "count"]
-                    if not inc.empty:
-                        fig = px.bar(inc, x="income_range", y="count")
-                        fig.update_layout(height=300, margin=dict(l=0, r=0, t=10, b=0))
-                        st.plotly_chart(fig, use_container_width=True)
+                    fig.update_layout(height=340, margin=dict(l=0, r=0, t=10, b=0))
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("無職業資料")
+
+            with col_d:
+                st.caption("月收入區間分佈")
+                income_counts = categorical_counts(view, "income_range", "月收入區間")
+                if not income_counts.empty:
+                    fig = px.bar(income_counts, x="月收入區間", y="人數")
+                    fig.update_layout(height=340, margin=dict(l=0, r=0, t=10, b=0))
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("無月收入資料")
+
+            col_e, col_f = st.columns(2)
+            with col_e:
+                st.caption("同住人口數分佈")
+                household_counts = household_size_counts(view)
+                if not household_counts.empty:
+                    fig = px.bar(household_counts, x="同住人口數", y="人數")
+                    fig.update_layout(height=300, margin=dict(l=0, r=0, t=10, b=0))
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("無同住人口數資料")
+
+            with col_f:
+                st.caption("生日月份分佈")
+                month_counts = birth_month_counts(birthdays)
+                if not month_counts.empty and month_counts["人數"].sum() > 0:
+                    fig = px.bar(month_counts, x="生日月份", y="人數")
+                    fig.update_layout(height=300, margin=dict(l=0, r=0, t=10, b=0))
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("無可解析生日資料")
+
+            completeness = profile_completeness(view)
+            if not completeness.empty:
+                st.caption("聯絡與備註欄位完整度")
+                fig = px.bar(
+                    completeness,
+                    x="欄位",
+                    y="人數",
+                    color="狀態",
+                    barmode="group",
+                    color_discrete_map={"已填寫": "#2f9e44", "未填寫": "#d94841"},
+                )
+                fig.update_layout(height=300, margin=dict(l=0, r=0, t=10, b=0))
+                st.plotly_chart(fig, use_container_width=True)
 
         st.subheader("顧客列表")
         column_rename = {
