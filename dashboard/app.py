@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import requests
 import streamlit as st
 from dotenv import load_dotenv
@@ -28,6 +29,14 @@ CAI_TREND_DESCRIPTION = {
     "活躍": "顧客回購的時間間隔越來越短，活躍度持續上升。",
     "固定": "顧客回購的時間間隔大致穩定，行為平穩。",
     "沉寂": "顧客回購的時間間隔越來越長，正在遠離。",
+}
+
+PAGES = ["總覽", "訂單", "商品", "顧客"]
+CAI_COLOR_MAP = {
+    "沉寂": "#d94841",
+    "固定": "#d99a22",
+    "活躍": "#2f9e44",
+    "未分類": "#8c8c8c",
 }
 
 st.set_page_config(page_title="LineLiteShop 商家儀表板", page_icon="🛒", layout="wide")
@@ -86,6 +95,145 @@ def normalize_products(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def safe_quantity(value: object) -> int:
+    try:
+        return int(float(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def expand_order_items(order_df: pd.DataFrame) -> pd.DataFrame:
+    if order_df.empty or "products" not in order_df.columns or "time" not in order_df.columns:
+        return pd.DataFrame(columns=["date", "time", "product", "quantity"])
+
+    rows = []
+    for _, order in order_df.iterrows():
+        order_time = order.get("time")
+        if pd.isna(order_time):
+            continue
+        for item in order.get("products") or []:
+            if not isinstance(item, dict):
+                continue
+            product_name = str(item.get("product") or "").strip()
+            quantity = safe_quantity(item.get("quantity"))
+            if not product_name or quantity <= 0:
+                continue
+            rows.append(
+                {
+                    "date": order_time.date(),
+                    "time": order_time,
+                    "product": product_name,
+                    "quantity": quantity,
+                }
+            )
+
+    return pd.DataFrame(rows, columns=["date", "time", "product", "quantity"])
+
+
+def build_product_daily_quantity(order_items: pd.DataFrame) -> pd.DataFrame:
+    if order_items.empty:
+        return pd.DataFrame(columns=["date", "product", "quantity"])
+
+    product_daily = (
+        order_items.groupby(["date", "product"], as_index=False)["quantity"]
+        .sum()
+        .sort_values(["date", "product"])
+    )
+    date_index = pd.date_range(
+        product_daily["date"].min(), product_daily["date"].max(), freq="D"
+    ).date
+    product_matrix = (
+        product_daily.pivot(index="date", columns="product", values="quantity")
+        .reindex(date_index, fill_value=0)
+        .fillna(0)
+    )
+    return product_matrix.reset_index(names="date").melt(
+        id_vars="date", var_name="product", value_name="quantity"
+    )
+
+
+def compute_customer_rfm_values(order_df: pd.DataFrame) -> pd.DataFrame:
+    required = {"customer_id", "time", "totalAmount"}
+    if order_df.empty or not required.issubset(order_df.columns):
+        return pd.DataFrame(columns=["customer_id", "R值", "F值", "M值", "最後訂購時間"])
+
+    valid = order_df.dropna(subset=["time"]).copy()
+    valid["customer_id"] = valid["customer_id"].fillna("").astype(str).str.strip()
+    valid = valid[valid["customer_id"] != ""]
+    if valid.empty:
+        return pd.DataFrame(columns=["customer_id", "R值", "F值", "M值", "最後訂購時間"])
+
+    today = pd.Timestamp(datetime.now().date())
+    frequency_col = "id" if "id" in valid.columns else "time"
+    grouped = (
+        valid.groupby("customer_id", as_index=False)
+        .agg(
+            最後訂購時間=("time", "max"),
+            F值=(frequency_col, "count"),
+            M值=("totalAmount", "sum"),
+        )
+    )
+    grouped["R值"] = (today - grouped["最後訂購時間"].dt.normalize()).dt.days.clip(lower=0)
+    return grouped[["customer_id", "R值", "F值", "M值", "最後訂購時間"]]
+
+
+def padded_range(series: pd.Series) -> tuple[float, float]:
+    values = pd.to_numeric(series, errors="coerce").dropna()
+    if values.empty:
+        return 0.0, 1.0
+    minimum = float(values.min())
+    maximum = float(values.max())
+    if minimum == maximum:
+        padding = max(abs(minimum) * 0.05, 1.0)
+        return minimum - padding, maximum + padding
+    padding = (maximum - minimum) * 0.05
+    return minimum - padding, maximum + padding
+
+
+def add_rfm_quadrant_planes(fig: go.Figure, plot_df: pd.DataFrame) -> None:
+    x_min, x_max = padded_range(plot_df["R值"])
+    y_min, y_max = padded_range(plot_df["F值"])
+    z_min, z_max = padded_range(plot_df["M值"])
+    x_mid = float(plot_df["R值"].median())
+    y_mid = float(plot_df["F值"].median())
+    z_mid = float(plot_df["M值"].median())
+
+    plane_style = dict(
+        colorscale=[[0, "#64748b"], [1, "#64748b"]],
+        opacity=0.12,
+        showscale=False,
+        hoverinfo="skip",
+        showlegend=False,
+    )
+    fig.add_trace(
+        go.Surface(
+            x=[[x_mid, x_mid], [x_mid, x_mid]],
+            y=[[y_min, y_max], [y_min, y_max]],
+            z=[[z_min, z_min], [z_max, z_max]],
+            name="R中位數",
+            **plane_style,
+        )
+    )
+    fig.add_trace(
+        go.Surface(
+            x=[[x_min, x_max], [x_min, x_max]],
+            y=[[y_mid, y_mid], [y_mid, y_mid]],
+            z=[[z_min, z_min], [z_max, z_max]],
+            name="F中位數",
+            **plane_style,
+        )
+    )
+    fig.add_trace(
+        go.Surface(
+            x=[[x_min, x_max], [x_min, x_max]],
+            y=[[y_min, y_min], [y_max, y_max]],
+            z=[[z_mid, z_mid], [z_mid, z_mid]],
+            name="M中位數",
+            **plane_style,
+        )
+    )
+
+
 # ---------- Sidebar ----------
 st.sidebar.title("🛒 LineLiteShop")
 st.sidebar.caption("商家儀表板")
@@ -94,7 +242,20 @@ if st.sidebar.button("🔄 重新整理資料", use_container_width=True):
     st.cache_data.clear()
     st.rerun()
 
-page = st.sidebar.radio("頁面", ["總覽", "訂單", "商品", "顧客"], label_visibility="collapsed")
+if "dashboard_page" not in st.session_state:
+    st.session_state.dashboard_page = PAGES[0]
+
+for page_name in PAGES:
+    if st.sidebar.button(
+        page_name,
+        key=f"nav_{page_name}",
+        type="primary" if st.session_state.dashboard_page == page_name else "secondary",
+        use_container_width=True,
+    ):
+        st.session_state.dashboard_page = page_name
+        st.rerun()
+
+page = st.session_state.dashboard_page
 
 # ---------- Load ----------
 try:
@@ -167,19 +328,31 @@ if page == "總覽":
             fig.update_layout(height=350, margin=dict(l=0, r=0, t=10, b=0))
             st.plotly_chart(fig, use_container_width=True)
 
+        order_items = expand_order_items(valid_orders)
+
+        if not order_items.empty:
+            st.subheader("各商品訂購量時間變化")
+            product_daily = build_product_daily_quantity(order_items)
+            fig = px.line(
+                product_daily,
+                x="date",
+                y="quantity",
+                color="product",
+                markers=True,
+                labels={"date": "日期", "quantity": "訂購量", "product": "商品"},
+            )
+            fig.update_layout(
+                height=430,
+                margin=dict(l=0, r=0, t=10, b=0),
+                legend_title_text="商品",
+            )
+            fig.update_yaxes(rangemode="tozero")
+            st.plotly_chart(fig, use_container_width=True)
+
         st.subheader("熱銷商品 Top 10")
-        rows = []
-        for _, order in valid_orders.iterrows():
-            for item in order["products"] or []:
-                rows.append(
-                    {
-                        "product": item.get("product"),
-                        "quantity": int(item.get("quantity", 0) or 0),
-                    }
-                )
-        if rows:
+        if not order_items.empty:
             top_products = (
-                pd.DataFrame(rows)
+                order_items
                 .groupby("product", as_index=False)["quantity"]
                 .sum()
                 .sort_values("quantity", ascending=False)
@@ -349,6 +522,72 @@ elif page == "顧客":
         c3.metric("重要會員", int(rfm_series.isin(important_types).sum()))
         c4.metric("活躍 (CAI)", int((cai_series == "活躍").sum()))
         c5.metric("沉寂 (CAI)", int((cai_series == "沉寂").sum()))
+
+        if not orders.empty:
+            completed_orders = orders[orders["status"] == "已完成"]
+            rfm_orders = completed_orders if not completed_orders.empty else orders[orders["status"] != "已取消"]
+            rfm_values = compute_customer_rfm_values(rfm_orders)
+            if not rfm_values.empty and "id" in view.columns:
+                customer_cols = [
+                    col
+                    for col in ["id", "name", "rfm_member_type", "cai_trend", "quadrant"]
+                    if col in view.columns
+                ]
+                plot_df = rfm_values.merge(
+                    view[customer_cols],
+                    left_on="customer_id",
+                    right_on="id",
+                    how="inner",
+                )
+                if not plot_df.empty:
+                    plot_df["顧客"] = plot_df.get("name", plot_df["customer_id"]).fillna(plot_df["customer_id"])
+                    cai_source = (
+                        plot_df["cai_trend"]
+                        if "cai_trend" in plot_df.columns
+                        else pd.Series("未分類", index=plot_df.index)
+                    )
+                    plot_df["CAI"] = cai_source.replace("", pd.NA).fillna("未分類")
+                    plot_df["M值"] = pd.to_numeric(plot_df["M值"], errors="coerce").fillna(0)
+                    plot_df["F值"] = pd.to_numeric(plot_df["F值"], errors="coerce").fillna(0)
+                    plot_df["R值"] = pd.to_numeric(plot_df["R值"], errors="coerce").fillna(0)
+
+                    st.subheader("RFM／CAI 3D 象限圖")
+                    fig = px.scatter_3d(
+                        plot_df,
+                        x="R值",
+                        y="F值",
+                        z="M值",
+                        color="CAI",
+                        color_discrete_map=CAI_COLOR_MAP,
+                        category_orders={"CAI": ["沉寂", "固定", "活躍", "未分類"]},
+                        hover_name="顧客",
+                        hover_data={
+                            "customer_id": True,
+                            "最後訂購時間": True,
+                            "R值": ":.0f",
+                            "F值": ":.0f",
+                            "M值": ":,.0f",
+                            "CAI": True,
+                        },
+                        labels={
+                            "R值": "R值：距今未購買天數",
+                            "F值": "F值：訂購次數",
+                            "M值": "M值：累計訂購金額",
+                        },
+                    )
+                    add_rfm_quadrant_planes(fig, plot_df)
+                    fig.update_traces(marker=dict(size=6), selector=dict(mode="markers"))
+                    fig.update_layout(
+                        height=620,
+                        margin=dict(l=0, r=0, t=10, b=0),
+                        scene=dict(
+                            xaxis_title="R值：距今未購買天數",
+                            yaxis_title="F值：訂購次數",
+                            zaxis_title="M值：累計訂購金額",
+                        ),
+                        legend_title_text="CAI",
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
 
         if not rfm_series.empty or not cai_series.empty or not quadrant_series.empty:
             st.subheader("RFM／CAI／象限分佈")
